@@ -1,11 +1,13 @@
 import { useEffect, useState } from 'react'
 import { CONSOLES } from '../config'
+import { useAudioEngaged } from '../audioEngagement'
 import Icon from './Icon'
 import StyledPoster from './StyledPoster'
 
 export default function GameDetailModal({ game, platform, onClose, onBook }) {
   const [posterErrored, setPosterErrored] = useState(false)
   const [trailerOpen, setTrailerOpen] = useState(false)
+  const audioEngaged = useAudioEngaged()
 
   useEffect(() => {
     setPosterErrored(false)
@@ -149,7 +151,7 @@ export default function GameDetailModal({ game, platform, onClose, onBook }) {
           ) : (
             <div className="aspect-video w-full max-h-[50vh] rounded-xl overflow-hidden border border-outline-variant/30 bg-black">
               <iframe
-                src={`https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1&rel=0`}
+                src={`https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1${audioEngaged ? '' : '&mute=1'}&rel=0`}
                 title={`${game.title} trailer`}
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen

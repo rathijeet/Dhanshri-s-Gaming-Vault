@@ -11,6 +11,7 @@ import BookingModal from './components/BookingModal'
 import PolicyModal from './components/PolicyModal'
 import SupportModal from './components/SupportModal'
 import { POLICIES } from './policies'
+import { AudioEngagementProvider } from './audioEngagement'
 
 export default function App() {
   const [modalOpen, setModalOpen] = useState(false)
@@ -31,20 +32,22 @@ export default function App() {
   const closeSupport = useCallback(() => setSupportOpen(false), [])
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-on-surface">
-      <Header onBook={openBooking} />
-      <main className="kinetic-grid flex-1">
-        <Hero onBook={openBooking} />
-        <Inventory onBook={openBooking} />
-        <GamesLibrary onBook={openBooking} />
-        <HowItWorks />
-        <TrustSafety />
-      </main>
-      <Footer onSupport={openSupport} onOpenPolicy={openPolicy} />
-      <BottomNav onBook={openBooking} onSupport={openSupport} />
-      <BookingModal open={modalOpen} onClose={closeBooking} preselectedConsoleId={preselected} />
-      <PolicyModal policy={policyId ? POLICIES[policyId] : null} onClose={closePolicy} />
-      <SupportModal open={supportOpen} onClose={closeSupport} />
-    </div>
+    <AudioEngagementProvider>
+      <div className="min-h-screen flex flex-col bg-background text-on-surface">
+        <Header onBook={openBooking} />
+        <main className="kinetic-grid flex-1">
+          <Hero onBook={openBooking} />
+          <Inventory onBook={openBooking} />
+          <GamesLibrary onBook={openBooking} />
+          <HowItWorks />
+          <TrustSafety />
+        </main>
+        <Footer onSupport={openSupport} onOpenPolicy={openPolicy} />
+        <BottomNav onBook={openBooking} onSupport={openSupport} />
+        <BookingModal open={modalOpen} onClose={closeBooking} preselectedConsoleId={preselected} />
+        <PolicyModal policy={policyId ? POLICIES[policyId] : null} onClose={closePolicy} />
+        <SupportModal open={supportOpen} onClose={closeSupport} />
+      </div>
+    </AudioEngagementProvider>
   )
 }
