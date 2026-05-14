@@ -83,6 +83,35 @@ export const GAMES = {
   ],
   xbox: [
     {
+      title: 'Ashes Cricket',
+      genre: 'Cricket',
+      year: 2017,
+      developer: 'Big Ant Studios',
+      players: 'Single & Multiplayer',
+      description:
+        "The official video game of cricket's greatest rivalry. Bat, bowl, and field your way through the Ashes series with realistic player likenesses and TV-style presentation.",
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/444450/library_600x900.jpg',
+    },
+    {
+      title: 'Asphalt 9: Legends',
+      genre: 'Racing',
+      year: 2018,
+      developer: 'Gameloft',
+      players: 'Single & Multiplayer',
+      description:
+        'Free-to-play arcade racer with 100+ cars across 70+ tracks. Pull off cinematic stunts and compete in real-time online multiplayer races.',
+    },
+    {
+      title: "Assassin's Creed Origins",
+      genre: 'Action-RPG',
+      year: 2017,
+      developer: 'Ubisoft Montreal',
+      players: 'Single Player',
+      description:
+        'Action-RPG set in ancient Egypt during the Ptolemaic period. Play as Bayek, a Medjay protecting his people, and witness the birth of the Assassin Brotherhood.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/582160/library_600x900.jpg',
+    },
+    {
       title: 'Battlefield 4',
       genre: 'FPS',
       year: 2013,
@@ -91,6 +120,16 @@ export const GAMES = {
       description:
         'Large-scale military FPS with destructible environments and dynamic "Levolution" map changes. 64-player battles across land, sea, and air.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1238860/library_600x900.jpg',
+    },
+    {
+      title: 'EA Sports FIFA 20',
+      genre: 'Football',
+      year: 2019,
+      developer: 'EA Sports',
+      players: 'Single & Multiplayer',
+      description:
+        'Featuring VOLTA Football for street-style 3v3, 4v4, and 5v5 matches. Includes UEFA Champions League and 700+ teams across 30+ leagues.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1056610/library_600x900.jpg',
     },
     {
       title: 'Far Cry 5',
@@ -103,6 +142,15 @@ export const GAMES = {
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/552520/library_600x900.jpg',
     },
     {
+      title: 'Forza Motorsport 6',
+      genre: 'Racing',
+      year: 2015,
+      developer: 'Turn 10 Studios',
+      players: 'Single & Multiplayer',
+      description:
+        'Open-air racing across 26 world-famous locations with 460+ Forzavista cars. Features dynamic weather, night racing, and 24-driver online races.',
+    },
+    {
       title: 'Grand Theft Auto V',
       genre: 'Open World',
       year: 2013,
@@ -111,35 +159,6 @@ export const GAMES = {
       description:
         'Modern-classic open-world experience. Switch between three protagonists across the sprawling criminal underworld of Los Santos and Blaine County.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_600x900.jpg',
-    },
-    {
-      title: 'WWE 2K19',
-      genre: 'Wrestling',
-      year: 2018,
-      developer: 'Yuke\'s / Visual Concepts',
-      players: 'Single & Multiplayer',
-      description:
-        'Step into the ring with WWE\'s biggest superstars. Features 2K Showcase, MyCareer, Universe mode, and deep creation tools for custom wrestlers and arenas.',
-    },
-    {
-      title: 'FIFA 21',
-      genre: 'Football',
-      year: 2020,
-      developer: 'EA Sports',
-      players: 'Single & Multiplayer',
-      description:
-        'Authentic football with new attacking creativity and natural defending. Includes UEFA Champions League, 30+ leagues, and Ultimate Team.',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1313860/library_600x900.jpg',
-    },
-    {
-      title: "Assassin's Creed Odyssey",
-      genre: 'Action-RPG',
-      year: 2018,
-      developer: 'Ubisoft Quebec',
-      players: 'Single Player',
-      description:
-        'Action-RPG set in ancient Greece. Forge your destiny as a Spartan mercenary in the Peloponnesian War, with branching dialogue and multiple endings.',
-      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/812140/library_600x900.jpg',
     },
     {
       title: 'Max Payne 3',
@@ -152,13 +171,93 @@ export const GAMES = {
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/204100/library_600x900.jpg',
     },
     {
-      title: 'Cricket 19',
-      genre: 'Cricket',
+      title: 'Mad Max',
+      genre: 'Open World',
+      year: 2015,
+      developer: 'Avalanche Studios',
+      players: 'Single Player',
+      description:
+        'Post-apocalyptic open-world driving and combat. Build your dream wasteland car and battle ferocious gangs to become the warrior the wasteland deserves.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/234140/library_600x900.jpg',
+    },
+    {
+      title: 'Need for Speed Heat',
+      genre: 'Racing',
       year: 2019,
-      developer: 'Big Ant Studios',
+      developer: 'Ghost Games',
       players: 'Single & Multiplayer',
       description:
-        'The official Ashes cricket simulation. Includes career mode, full ICC tournament gameplay, plus deep player and stadium customization.',
+        'Race by day in sanctioned events, cruise the streets at night in illegal races. Customize your car and build your reputation as a street legend.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1222680/library_600x900.jpg',
+    },
+    {
+      title: 'Need for Speed Payback',
+      genre: 'Racing',
+      year: 2017,
+      developer: 'Ghost Games',
+      players: 'Single & Multiplayer',
+      description:
+        'Action-driving fantasy featuring three playable characters with unique skills. Build out your derelict cars into custom street machines.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1262540/library_600x900.jpg',
+    },
+    {
+      title: 'Resident Evil 4',
+      genre: 'Survival Horror',
+      year: 2023,
+      developer: 'Capcom',
+      players: 'Single Player',
+      description:
+        "Reimagined survival horror. Leon S. Kennedy heads to a remote European village to rescue the President's kidnapped daughter from a mysterious cult.",
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2050650/library_600x900.jpg',
+    },
+    {
+      title: 'Rise of the Tomb Raider',
+      genre: 'Action-Adventure',
+      year: 2015,
+      developer: 'Crystal Dynamics',
+      players: 'Single Player',
+      description:
+        'Lara Croft uncovers an ancient mystery in the wilds of Siberia while battling a sinister organization. Features deep weapon upgrades and traversal.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/391220/library_600x900.jpg',
+    },
+    {
+      title: 'Shadow of the Tomb Raider',
+      genre: 'Action-Adventure',
+      year: 2018,
+      developer: 'Eidos Montréal',
+      players: 'Single Player',
+      description:
+        'Lara Croft must master a deadly jungle, overcome terrifying tombs, and survive her darkest hour in the climactic finale of the origin trilogy.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/750920/library_600x900.jpg',
+    },
+    {
+      title: 'The Witcher 3: Wild Hunt',
+      genre: 'RPG',
+      year: 2015,
+      developer: 'CD Projekt Red',
+      players: 'Single Player',
+      description:
+        'Story-driven open-world RPG. Play as monster hunter Geralt of Rivia, navigate a war-torn continent, and face the otherworldly Wild Hunt.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/292030/library_600x900.jpg',
+    },
+    {
+      title: 'WWE 2K15',
+      genre: 'Wrestling',
+      year: 2014,
+      developer: 'Visual Concepts',
+      players: 'Single & Multiplayer',
+      description:
+        'Step into MyCareer and rise from rookie to WWE Superstar. Features 2K Showcase highlighting iconic CM Punk vs John Cena and HBK vs HHH rivalries.',
+      image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/387260/library_600x900.jpg',
+    },
+    {
+      title: 'WWE 2K19',
+      genre: 'Wrestling',
+      year: 2018,
+      developer: "Yuke's / Visual Concepts",
+      players: 'Single & Multiplayer',
+      description:
+        "Step into the ring with WWE's biggest superstars. Features 2K Showcase, MyCareer, Universe mode, and deep creation tools for custom wrestlers and arenas.",
     },
   ],
 }
@@ -175,6 +274,7 @@ const GENRE_ICON = {
   'Action-Adventure': 'rocket_launch',
   RPG: 'auto_stories',
   'Souls-like': 'local_fire_department',
+  'Survival Horror': 'skull',
   Platformer: 'stairs',
 }
 
