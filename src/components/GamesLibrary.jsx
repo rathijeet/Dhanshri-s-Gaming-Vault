@@ -14,35 +14,51 @@ const HOVER_DELAY_MS = 400
 function GameCard({ game, platform, onClick }) {
   const [errored, setErrored] = useState(false)
   const [previewing, setPreviewing] = useState(false)
+  const [isTouch, setIsTouch] = useState(false)
   const hoverTimer = useRef(null)
-  const hoverCapable = useRef(false)
   const showFallback = errored || !game.image
 
   useEffect(() => {
     if (typeof window === 'undefined') return
-    hoverCapable.current = window.matchMedia('(hover: hover)').matches
+    setIsTouch(!window.matchMedia('(hover: hover)').matches)
   }, [])
 
   useEffect(() => () => clearTimeout(hoverTimer.current), [])
 
   const beginHover = () => {
-    if (!game.youtubeId || !hoverCapable.current) return
+    if (!game.youtubeId || isTouch) return
     hoverTimer.current = setTimeout(() => setPreviewing(true), HOVER_DELAY_MS)
   }
   const endHover = () => {
+    if (isTouch) return
     clearTimeout(hoverTimer.current)
     setPreviewing(false)
   }
 
+  const togglePreview = (e) => {
+    e.stopPropagation()
+    e.preventDefault()
+    setPreviewing((p) => !p)
+  }
+
+  const handleKey = (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      onClick()
+    }
+  }
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKey}
       onMouseEnter={beginHover}
       onMouseLeave={endHover}
       onFocus={beginHover}
       onBlur={endHover}
-      className="group relative bg-surface-container rounded-xl border border-outline-variant/20 overflow-hidden hover:border-primary-fixed/50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary-fixed/60"
+      className="group relative bg-surface-container rounded-xl border border-outline-variant/20 overflow-hidden hover:border-primary-fixed/50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary-fixed/60 cursor-pointer"
       aria-label={`View details for ${game.title}`}
     >
       <div className="aspect-[2/3] w-full bg-surface-container-low relative overflow-hidden">
@@ -75,6 +91,17 @@ function GameCard({ game, platform, onClick }) {
           </div>
         )}
 
+        {isTouch && game.youtubeId && (
+          <button
+            type="button"
+            onClick={togglePreview}
+            className="absolute top-2 right-2 z-10 w-10 h-10 rounded-full bg-background/85 backdrop-blur-md border border-primary-fixed/40 text-primary-fixed flex items-center justify-center active:scale-95 transition-transform"
+            aria-label={previewing ? 'Stop preview' : 'Play preview'}
+          >
+            <Icon name={previewing ? 'stop' : 'play_arrow'} className="!text-xl" filled />
+          </button>
+        )}
+
         <div className="absolute inset-0 hardware-card-gradient pointer-events-none"></div>
         <div className="absolute inset-0 flex items-end justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="bg-primary-fixed/90 text-on-primary-fixed font-label-mono text-label-mono uppercase px-2 py-1 rounded">
@@ -90,7 +117,7 @@ function GameCard({ game, platform, onClick }) {
           {game.genre} · {game.year}
         </p>
       </div>
-    </button>
+    </div>
   )
 }
 
