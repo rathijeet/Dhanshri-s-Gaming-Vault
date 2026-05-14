@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { GAMES } from '../games'
 import Icon from './Icon'
 import StyledPoster from './StyledPoster'
@@ -9,14 +9,39 @@ const TABS = [
   { id: 'xbox', label: 'Xbox Series S', icon: 'videogame_asset' },
 ]
 
+const HOVER_DELAY_MS = 400
+
 function GameCard({ game, platform, onClick }) {
   const [errored, setErrored] = useState(false)
+  const [previewing, setPreviewing] = useState(false)
+  const hoverTimer = useRef(null)
+  const hoverCapable = useRef(false)
   const showFallback = errored || !game.image
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    hoverCapable.current = window.matchMedia('(hover: hover)').matches
+  }, [])
+
+  useEffect(() => () => clearTimeout(hoverTimer.current), [])
+
+  const beginHover = () => {
+    if (!game.youtubeId || !hoverCapable.current) return
+    hoverTimer.current = setTimeout(() => setPreviewing(true), HOVER_DELAY_MS)
+  }
+  const endHover = () => {
+    clearTimeout(hoverTimer.current)
+    setPreviewing(false)
+  }
 
   return (
     <button
       type="button"
       onClick={onClick}
+      onMouseEnter={beginHover}
+      onMouseLeave={endHover}
+      onFocus={beginHover}
+      onBlur={endHover}
       className="group relative bg-surface-container rounded-xl border border-outline-variant/20 overflow-hidden hover:border-primary-fixed/50 transition-all text-left focus:outline-none focus:ring-2 focus:ring-primary-fixed/60"
       aria-label={`View details for ${game.title}`}
     >
@@ -38,6 +63,18 @@ function GameCard({ game, platform, onClick }) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
         )}
+
+        {previewing && game.youtubeId && (
+          <div className="absolute inset-0 bg-black overflow-hidden pointer-events-none">
+            <iframe
+              src={`https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1&controls=0&loop=1&playlist=${game.youtubeId}&modestbranding=1&playsinline=1&rel=0&start=5`}
+              title={`${game.title} preview`}
+              allow="autoplay; encrypted-media"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[267%] h-full border-0"
+            />
+          </div>
+        )}
+
         <div className="absolute inset-0 hardware-card-gradient pointer-events-none"></div>
         <div className="absolute inset-0 flex items-end justify-end p-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <span className="bg-primary-fixed/90 text-on-primary-fixed font-label-mono text-label-mono uppercase px-2 py-1 rounded">

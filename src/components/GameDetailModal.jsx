@@ -5,9 +5,11 @@ import StyledPoster from './StyledPoster'
 
 export default function GameDetailModal({ game, platform, onClose, onBook }) {
   const [posterErrored, setPosterErrored] = useState(false)
+  const [trailerOpen, setTrailerOpen] = useState(false)
 
   useEffect(() => {
     setPosterErrored(false)
+    setTrailerOpen(false)
   }, [game])
 
   useEffect(() => {
@@ -116,6 +118,43 @@ export default function GameDetailModal({ game, platform, onClose, onBook }) {
                   <p className="font-body-md text-on-surface">{game.players}</p>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Trailer */}
+          {!trailerOpen ? (
+            game.youtubeId ? (
+              <button
+                type="button"
+                onClick={() => setTrailerOpen(true)}
+                className="w-full flex items-center justify-center gap-2 bg-surface-container border-2 border-primary-fixed/40 hover:border-primary-fixed text-primary-fixed px-6 py-4 rounded-xl font-bold font-headline-sm transition-colors group"
+              >
+                <Icon name="play_circle" className="!text-2xl group-hover:scale-110 transition-transform" filled />
+                Watch Trailer
+              </button>
+            ) : (
+              <a
+                href={`https://www.youtube.com/results?search_query=${encodeURIComponent(
+                  `${game.title} official trailer`
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-2 bg-surface-container border-2 border-outline-variant/30 hover:border-primary-fixed/40 text-on-surface-variant hover:text-primary-fixed px-6 py-4 rounded-xl font-bold font-headline-sm transition-colors group"
+              >
+                <Icon name="play_circle" className="!text-2xl" />
+                Watch Trailer on YouTube
+                <Icon name="open_in_new" className="!text-base opacity-70" />
+              </a>
+            )
+          ) : (
+            <div className="aspect-video w-full max-h-[50vh] rounded-xl overflow-hidden border border-outline-variant/30 bg-black">
+              <iframe
+                src={`https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1&rel=0`}
+                title={`${game.title} trailer`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+              />
             </div>
           )}
         </div>

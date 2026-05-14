@@ -1,5 +1,6 @@
 // Game posters use Steam CDN where available.
 // Games without an `image` field render a styled fallback poster automatically.
+// `youtubeId` is the 11-char YouTube video ID for the trailer (lazy-loaded on click).
 
 export const GAMES = {
   ps5: [
@@ -11,6 +12,9 @@ export const GAMES = {
       players: 'Single Player',
       description:
         'Swing through New York as both Peter Parker and Miles Morales. Face off against Venom and Kraven the Hunter in this action-packed sequel with seamless protagonist switching.',
+      image:
+        'https://images.wallpapersden.com/image/download/marvel-s-spider-man-2-peter_bmdqZW2UmZqaraWkpJRobWllrWdma2U.jpg',
+      youtubeId: 'nq1M_Wc4FIc',
     },
     {
       title: 'God of War Ragnarök',
@@ -21,6 +25,7 @@ export const GAMES = {
       description:
         'Kratos and Atreus journey through the Nine Realms in search of answers as Asgardian forces prepare for a prophesied battle that will end the world.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2322010/library_600x900.jpg',
+      youtubeId: 'hfJ4Km46A-0',
     },
     {
       title: 'EA Sports FC 24',
@@ -31,6 +36,7 @@ export const GAMES = {
       description:
         'The first football game under the EA Sports FC banner. Authentic gameplay with HyperMotionV technology and over 19,000 licensed players across 700+ teams.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2195250/library_600x900.jpg',
+      youtubeId: 'XhP3Xh4LMA8',
     },
     {
       title: 'Gran Turismo 7',
@@ -40,6 +46,7 @@ export const GAMES = {
       players: 'Single & Multiplayer',
       description:
         'The most comprehensive racing simulator yet. Features 400+ cars across 90+ track layouts, classic GT modes, livery editor, and competitive online racing.',
+      youtubeId: '1tBUsXIkG1A',
     },
     {
       title: 'Horizon Forbidden West',
@@ -50,6 +57,7 @@ export const GAMES = {
       description:
         'Aloy ventures into a stunning post-apocalyptic frontier filled with mysterious tribes, deadly machines, and a mounting threat to all life on Earth.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2420110/library_600x900.jpg',
+      youtubeId: 'Lq594XmpPBg',
     },
     {
       title: "Demon's Souls",
@@ -59,6 +67,7 @@ export const GAMES = {
       players: 'Single Player (Online Co-op)',
       description:
         'A stunning PS5 remake of the genre-defining classic. Battle through the haunting kingdom of Boletaria with razor-sharp visuals and brutal combat.',
+      youtubeId: '2TMs2E6cms4',
     },
     {
       title: 'Ratchet & Clank: Rift Apart',
@@ -69,6 +78,7 @@ export const GAMES = {
       description:
         'A dimension-hopping platformer that showcases the PS5 SSD. Blast through alternate universes with Ratchet, Clank, and the dimension-displaced Lombax, Rivet.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1895880/library_600x900.jpg',
+      youtubeId: '55PRv_e00wc',
     },
     {
       title: 'Final Fantasy XVI',
@@ -79,6 +89,7 @@ export const GAMES = {
       description:
         'A dark-fantasy RPG set in the realm of Valisthea. Play as Clive Rosfield, a sworn shield turned vengeance-driven warrior unraveling the mystery of the Eikons.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2515020/library_600x900.jpg',
+      youtubeId: 'gV5rIW1Qums',
     },
   ],
   xbox: [
@@ -91,6 +102,7 @@ export const GAMES = {
       description:
         "The official video game of cricket's greatest rivalry. Bat, bowl, and field your way through the Ashes series with realistic player likenesses and TV-style presentation.",
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/444450/library_600x900.jpg',
+      youtubeId: '-BkZ4oFRxMs',
     },
     {
       title: 'Asphalt 9: Legends',
@@ -100,6 +112,7 @@ export const GAMES = {
       players: 'Single & Multiplayer',
       description:
         'Free-to-play arcade racer with 100+ cars across 70+ tracks. Pull off cinematic stunts and compete in real-time online multiplayer races.',
+      youtubeId: 'ot63S91Ihwk',
     },
     {
       title: "Assassin's Creed Origins",
@@ -110,6 +123,7 @@ export const GAMES = {
       description:
         'Action-RPG set in ancient Egypt during the Ptolemaic period. Play as Bayek, a Medjay protecting his people, and witness the birth of the Assassin Brotherhood.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/582160/library_600x900.jpg',
+      youtubeId: 'cK4iAjzAoas',
     },
     {
       title: 'Battlefield 4',
@@ -120,6 +134,7 @@ export const GAMES = {
       description:
         'Large-scale military FPS with destructible environments and dynamic "Levolution" map changes. 64-player battles across land, sea, and air.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1238860/library_600x900.jpg',
+      youtubeId: 'P9fK77eE7fs',
     },
     {
       title: 'EA Sports FIFA 20',
@@ -130,6 +145,7 @@ export const GAMES = {
       description:
         'Featuring VOLTA Football for street-style 3v3, 4v4, and 5v5 matches. Includes UEFA Champions League and 700+ teams across 30+ leagues.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1056610/library_600x900.jpg',
+      youtubeId: 'vgQNOIhRsV4',
     },
     {
       title: 'Far Cry 5',
@@ -140,6 +156,7 @@ export const GAMES = {
       description:
         'Take down a doomsday cult in rural Hope County, Montana. Open-world FPS with two-player co-op and a stranger-than-fiction storyline.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/552520/library_600x900.jpg',
+      youtubeId: 'Kdaoe4hbMso',
     },
     {
       title: 'Forza Motorsport 6',
@@ -149,6 +166,7 @@ export const GAMES = {
       players: 'Single & Multiplayer',
       description:
         'Open-air racing across 26 world-famous locations with 460+ Forzavista cars. Features dynamic weather, night racing, and 24-driver online races.',
+      youtubeId: 'YPziu4TBLts',
     },
     {
       title: 'Grand Theft Auto V',
@@ -159,6 +177,7 @@ export const GAMES = {
       description:
         'Modern-classic open-world experience. Switch between three protagonists across the sprawling criminal underworld of Los Santos and Blaine County.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/271590/library_600x900.jpg',
+      youtubeId: 'hvoD7ehZPcM',
     },
     {
       title: 'Max Payne 3',
@@ -169,6 +188,7 @@ export const GAMES = {
       description:
         'Cinematic third-person shooter starring a battered, embittered Max relocating to São Paulo. Iconic bullet-time mechanics with brutal, weighty gunplay.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/204100/library_600x900.jpg',
+      youtubeId: '4Uc_dbG7MR8',
     },
     {
       title: 'Mad Max',
@@ -179,6 +199,7 @@ export const GAMES = {
       description:
         'Post-apocalyptic open-world driving and combat. Build your dream wasteland car and battle ferocious gangs to become the warrior the wasteland deserves.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/234140/library_600x900.jpg',
+      youtubeId: '1suYdGmns5E',
     },
     {
       title: 'Need for Speed Heat',
@@ -189,6 +210,7 @@ export const GAMES = {
       description:
         'Race by day in sanctioned events, cruise the streets at night in illegal races. Customize your car and build your reputation as a street legend.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1222680/library_600x900.jpg',
+      youtubeId: '9ewiJJe_nYI',
     },
     {
       title: 'Need for Speed Payback',
@@ -199,6 +221,7 @@ export const GAMES = {
       description:
         'Action-driving fantasy featuring three playable characters with unique skills. Build out your derelict cars into custom street machines.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/1262540/library_600x900.jpg',
+      youtubeId: 'kc-OcOduEx0',
     },
     {
       title: 'Resident Evil 4',
@@ -209,6 +232,7 @@ export const GAMES = {
       description:
         "Reimagined survival horror. Leon S. Kennedy heads to a remote European village to rescue the President's kidnapped daughter from a mysterious cult.",
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/2050650/library_600x900.jpg',
+      youtubeId: 'E69tKrfEQag',
     },
     {
       title: 'Rise of the Tomb Raider',
@@ -219,6 +243,7 @@ export const GAMES = {
       description:
         'Lara Croft uncovers an ancient mystery in the wilds of Siberia while battling a sinister organization. Features deep weapon upgrades and traversal.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/391220/library_600x900.jpg',
+      youtubeId: 'qiYiddjc6cU',
     },
     {
       title: 'Shadow of the Tomb Raider',
@@ -229,6 +254,7 @@ export const GAMES = {
       description:
         'Lara Croft must master a deadly jungle, overcome terrifying tombs, and survive her darkest hour in the climactic finale of the origin trilogy.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/750920/library_600x900.jpg',
+      youtubeId: 'XYtyeqVQnRI',
     },
     {
       title: 'The Witcher 3: Wild Hunt',
@@ -239,6 +265,7 @@ export const GAMES = {
       description:
         'Story-driven open-world RPG. Play as monster hunter Geralt of Rivia, navigate a war-torn continent, and face the otherworldly Wild Hunt.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/292030/library_600x900.jpg',
+      youtubeId: 'XHrskkHf958',
     },
     {
       title: 'WWE 2K15',
@@ -249,6 +276,7 @@ export const GAMES = {
       description:
         'Step into MyCareer and rise from rookie to WWE Superstar. Features 2K Showcase highlighting iconic CM Punk vs John Cena and HBK vs HHH rivalries.',
       image: 'https://cdn.cloudflare.steamstatic.com/steam/apps/387260/library_600x900.jpg',
+      youtubeId: '6gGMjhqbi2c',
     },
     {
       title: 'WWE 2K19',
@@ -258,6 +286,7 @@ export const GAMES = {
       players: 'Single & Multiplayer',
       description:
         "Step into the ring with WWE's biggest superstars. Features 2K Showcase, MyCareer, Universe mode, and deep creation tools for custom wrestlers and arenas.",
+      youtubeId: '3L1Zmmbou3s',
     },
   ],
 }
