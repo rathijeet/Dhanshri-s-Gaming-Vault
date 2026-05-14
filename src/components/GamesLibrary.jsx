@@ -82,17 +82,20 @@ function GameCard({ game, platform, onClick }) {
           />
         )}
 
-        {previewing && game.youtubeId && (
-          <div className="absolute inset-0 bg-black overflow-hidden pointer-events-none">
-            <iframe
-              key={`${game.youtubeId}-${audioEngaged ? 'on' : 'off'}`}
-              src={`https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1${audioEngaged ? '' : '&mute=1'}&controls=0&loop=1&playlist=${game.youtubeId}&modestbranding=1&playsinline=1&rel=0&start=5`}
-              title={`${game.title} preview`}
-              allow="autoplay; encrypted-media"
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[267%] h-full border-0"
-            />
-          </div>
-        )}
+        {previewing && game.youtubeId && (() => {
+          const muted = isTouch || !audioEngaged
+          return (
+            <div className="absolute inset-0 bg-black overflow-hidden pointer-events-none">
+              <iframe
+                key={`${game.youtubeId}-${muted ? 'm' : 'u'}`}
+                src={`https://www.youtube-nocookie.com/embed/${game.youtubeId}?autoplay=1${muted ? '&mute=1' : ''}&controls=0&loop=1&playlist=${game.youtubeId}&modestbranding=1&playsinline=1&rel=0&start=5`}
+                title={`${game.title} preview`}
+                allow="autoplay; encrypted-media"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[267%] h-full border-0"
+              />
+            </div>
+          )
+        })()}
 
         {isTouch && game.youtubeId && (
           <button
