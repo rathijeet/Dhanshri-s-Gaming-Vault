@@ -225,13 +225,14 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-start md:items-center justify-center bg-background/80 backdrop-blur-md p-4 overflow-y-auto"
+      className="fixed inset-0 z-[100] overflow-y-auto bg-background/80 backdrop-blur-md"
       onClick={onClose}
     >
-      <div
-        className="relative w-full max-w-2xl my-8 bg-surface-container-high rounded-3xl border border-primary-fixed/20 shadow-2xl"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="flex min-h-full items-start md:items-center justify-center p-4">
+        <div
+          className="relative w-full max-w-2xl my-8 bg-surface-container-high rounded-3xl border border-primary-fixed/20 shadow-2xl"
+          onClick={(e) => e.stopPropagation()}
+        >
         <div className="sticky top-0 z-10 flex items-start justify-between p-6 md:p-8 border-b border-outline-variant/20 bg-surface-container-high rounded-t-3xl">
           <div>
             <p className="font-label-mono text-label-mono text-primary-fixed uppercase mb-2">
@@ -488,6 +489,7 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )
