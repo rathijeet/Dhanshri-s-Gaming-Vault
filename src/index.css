@@ -1,0 +1,45 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    font-family: 'Hanken Grotesk', sans-serif;
+    background-color: #0c150f;
+    color: #dae5da;
+  }
+
+  *::selection {
+    background-color: #56ffa8;
+    color: #002110;
+  }
+}
+
+@layer utilities {
+  .kinetic-grid {
+    background-image:
+      linear-gradient(to right, rgba(86, 255, 168, 0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(86, 255, 168, 0.05) 1px, transparent 1px);
+    background-size: 40px 40px;
+  }
+
+  .neon-glow {
+    box-shadow: 0 0 15px rgba(86, 255, 168, 0.3);
+  }
+
+  .hardware-card-gradient {
+    background: linear-gradient(180deg, rgba(12, 21, 15, 0) 0%, rgba(12, 21, 15, 0.9) 100%);
+  }
+
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  }
+}
