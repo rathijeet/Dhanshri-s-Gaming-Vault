@@ -3,6 +3,7 @@ import Header from './components/Header'
 import Hero from './components/Hero'
 import Inventory from './components/Inventory'
 import GamesLibrary from './components/GamesLibrary'
+import BuildSection from './components/BuildSection'
 import HowItWorks from './components/HowItWorks'
 import TrustSafety from './components/TrustSafety'
 import BottomNav from './components/BottomNav'
@@ -39,6 +40,7 @@ export default function App() {
           <Hero onBook={openBooking} />
           <Inventory onBook={openBooking} />
           <GamesLibrary onBook={openBooking} />
+          <BuildSection />
           <HowItWorks />
           <TrustSafety />
         </main>

@@ -4,6 +4,7 @@ import Logo from './Logo'
 
 const NAV_LINKS = [
   { href: '#inventory', label: 'Inventory' },
+  { href: '#build', label: 'Build' },
   { href: '#how', label: 'How it Works' },
   { href: '#trust', label: 'Terms' },
 ]
