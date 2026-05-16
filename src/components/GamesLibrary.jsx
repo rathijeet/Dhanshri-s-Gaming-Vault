@@ -3,7 +3,6 @@ import { GAMES } from '../games'
 import { useAudioEngaged } from '../audioEngagement'
 import Icon from './Icon'
 import StyledPoster from './StyledPoster'
-import GameDetailModal from './GameDetailModal'
 
 const TABS = [
   { id: 'ps5', label: 'PlayStation 5', shortLabel: 'PS5', icon: 'sports_esports' },
@@ -128,9 +127,8 @@ function GameCard({ game, platform, onClick }) {
   )
 }
 
-export default function GamesLibrary({ onBook }) {
+export default function GamesLibrary({ onOpenGame }) {
   const [tab, setTab] = useState('ps5')
-  const [selectedGame, setSelectedGame] = useState(null)
   const games = GAMES[tab] || []
 
   return (
@@ -186,7 +184,7 @@ export default function GamesLibrary({ onBook }) {
               key={g.title}
               game={g}
               platform={tab}
-              onClick={() => setSelectedGame(g)}
+              onClick={() => onOpenGame(g, tab)}
             />
           ))}
         </div>
@@ -195,13 +193,6 @@ export default function GamesLibrary({ onBook }) {
           Game lineup may vary by booking. Confirm availability on WhatsApp before pickup.
         </p>
       </section>
-
-      <GameDetailModal
-        game={selectedGame}
-        platform={tab}
-        onClose={() => setSelectedGame(null)}
-        onBook={onBook}
-      />
     </>
   )
 }

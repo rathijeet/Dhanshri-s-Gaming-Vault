@@ -12,12 +12,14 @@ import PolicyModal from './components/PolicyModal'
 import SupportModal from './components/SupportModal'
 import { POLICIES } from './policies'
 import { AudioEngagementProvider } from './audioEngagement'
+import GameDetailModal from './components/GameDetailModal'
 
 export default function App() {
   const [modalOpen, setModalOpen] = useState(false)
   const [preselected, setPreselected] = useState('')
   const [policyId, setPolicyId] = useState('')
   const [supportOpen, setSupportOpen] = useState(false)
+  const [gameDetail, setGameDetail] = useState(null)
 
   const openBooking = useCallback((consoleId = '') => {
     setPreselected(consoleId)
@@ -31,14 +33,17 @@ export default function App() {
   const openSupport = useCallback(() => setSupportOpen(true), [])
   const closeSupport = useCallback(() => setSupportOpen(false), [])
 
+  const openGame = useCallback((game, platform) => setGameDetail({ game, platform }), [])
+  const closeGame = useCallback(() => setGameDetail(null), [])
+
   return (
     <AudioEngagementProvider>
       <div className="min-h-screen flex flex-col bg-background text-on-surface">
         <Header onBook={openBooking} />
         <main className="kinetic-grid flex-1">
           <Hero onBook={openBooking} />
-          <Inventory onBook={openBooking} />
-          <GamesLibrary onBook={openBooking} />
+          <Inventory onBook={openBooking} onOpenGame={openGame} />
+          <GamesLibrary onOpenGame={openGame} />
           <HowItWorks />
           <TrustSafety />
         </main>
@@ -47,6 +52,12 @@ export default function App() {
         <BookingModal open={modalOpen} onClose={closeBooking} preselectedConsoleId={preselected} />
         <PolicyModal policy={policyId ? POLICIES[policyId] : null} onClose={closePolicy} />
         <SupportModal open={supportOpen} onClose={closeSupport} />
+        <GameDetailModal
+          game={gameDetail?.game || null}
+          platform={gameDetail?.platform || 'ps5'}
+          onClose={closeGame}
+          onBook={openBooking}
+        />
       </div>
     </AudioEngagementProvider>
   )

@@ -8,7 +8,7 @@ const TABS = [
   { id: 'xbox', label: 'Xbox Series S', shortLabel: 'Xbox', icon: 'videogame_asset' },
 ]
 
-function ConsoleCard({ item, onBook }) {
+function ConsoleCard({ item, onBook, onOpenGame }) {
   const games = GAMES[item.id] || []
   return (
     <div className="group relative overflow-hidden rounded-2xl border border-outline-variant/20 bg-surface-container-high transition-all hover:border-primary-fixed/50">
@@ -45,13 +45,15 @@ function ConsoleCard({ item, onBook }) {
           </div>
           <div className="flex flex-wrap gap-1.5">
             {games.map((g) => (
-              <span
+              <button
                 key={g.title}
+                type="button"
+                onClick={() => onOpenGame(g, item.id)}
                 title={`${g.genre} · ${g.year}`}
-                className="bg-surface-variant text-on-surface-variant px-2.5 py-1 rounded-md font-body-md text-sm border border-outline-variant/20"
+                className="bg-surface-variant text-on-surface-variant px-2.5 py-1 rounded-md font-body-md text-sm border border-primary-fixed/30 hover:border-primary-fixed hover:text-on-primary-fixed hover:bg-primary-fixed/90 active:bg-primary-fixed active:text-on-primary-fixed active:scale-95 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary-fixed/60"
               >
                 {g.title}
-              </span>
+              </button>
             ))}
           </div>
           <a
@@ -73,7 +75,7 @@ function ConsoleCard({ item, onBook }) {
   )
 }
 
-export default function Inventory({ onBook }) {
+export default function Inventory({ onBook, onOpenGame }) {
   const [tab, setTab] = useState('ps5')
   const active = CONSOLES.find((c) => c.id === tab) || CONSOLES[0]
 
@@ -119,7 +121,7 @@ export default function Inventory({ onBook }) {
         </div>
 
         <div className="max-w-2xl mx-auto">
-          <ConsoleCard item={active} onBook={onBook} />
+          <ConsoleCard item={active} onBook={onBook} onOpenGame={onOpenGame} />
         </div>
       </div>
     </section>
