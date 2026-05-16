@@ -79,7 +79,7 @@ export default function Inventory({ onBook }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {CONSOLES.map((c) => (
             <ConsoleCard key={c.id} item={c} onBook={onBook} />
           ))}

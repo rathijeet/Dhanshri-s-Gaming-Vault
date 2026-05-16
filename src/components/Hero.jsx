@@ -17,8 +17,8 @@ export default function Hero({ onBook }) {
           </h1>
 
           <p className="font-body-lg text-body-lg text-on-surface-variant mb-8 max-w-xl">
-            Rent a PS5 or Xbox in Nagpur today. Starting at{' '}
-            <span className="text-primary-fixed font-bold">₹500/day</span>. We deliver, set up, and you play.
+            Rent a PS5, Xbox or PS4 in Nagpur today. Starting at{' '}
+            <span className="text-primary-fixed font-bold">₹599/day</span>. We deliver, set up, and you play.
             Professional hardware, local speed.
           </p>
 

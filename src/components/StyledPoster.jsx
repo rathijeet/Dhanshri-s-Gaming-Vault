@@ -31,7 +31,7 @@ export default function StyledPoster({ title, genre, year, platform }) {
         </span>
         {platform && (
           <span className="font-label-mono text-label-mono text-primary-fixed uppercase text-[10px] px-2 py-0.5 bg-background/60 rounded">
-            {platform === 'ps5' ? 'PS5' : 'XBOX'}
+            {platform === 'ps5' ? 'PS5' : platform === 'ps4' ? 'PS4' : 'XBOX'}
           </span>
         )}
       </div>

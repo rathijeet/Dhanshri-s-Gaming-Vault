@@ -28,7 +28,13 @@ export default function GameDetailModal({ game, platform, onClose, onBook }) {
   if (!game) return null
 
   const consoleData = CONSOLES.find((c) => c.id === platform)
-  const consoleName = consoleData?.name || (platform === 'ps5' ? 'PlayStation 5' : 'Xbox Series S')
+  const consoleName =
+    consoleData?.name ||
+    (platform === 'ps5'
+      ? 'PlayStation 5'
+      : platform === 'ps4'
+        ? 'PlayStation 4'
+        : 'Xbox Series S')
   const showFallback = posterErrored || !game.image
 
   return (
@@ -90,7 +96,7 @@ export default function GameDetailModal({ game, platform, onClose, onBook }) {
                   {game.year}
                 </span>
                 <span className="bg-surface-variant text-on-surface-variant font-label-mono text-label-mono px-3 py-1 rounded-full uppercase">
-                  {platform === 'ps5' ? 'PS5' : 'Xbox'}
+                  {platform === 'ps5' ? 'PS5' : platform === 'ps4' ? 'PS4' : 'Xbox'}
                 </span>
               </div>
 

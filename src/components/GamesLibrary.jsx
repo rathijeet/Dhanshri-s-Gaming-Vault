@@ -6,8 +6,9 @@ import StyledPoster from './StyledPoster'
 import GameDetailModal from './GameDetailModal'
 
 const TABS = [
-  { id: 'ps5', label: 'PlayStation 5', icon: 'sports_esports' },
-  { id: 'xbox', label: 'Xbox Series S', icon: 'videogame_asset' },
+  { id: 'ps5', label: 'PlayStation 5', shortLabel: 'PS5', icon: 'sports_esports' },
+  { id: 'xbox', label: 'Xbox Series S', shortLabel: 'Xbox', icon: 'videogame_asset' },
+  { id: 'ps4', label: 'PlayStation 4', shortLabel: 'PS4', icon: 'stadia_controller' },
 ]
 
 const HOVER_DELAY_MS = 400
@@ -172,7 +173,7 @@ export default function GamesLibrary({ onBook }) {
                 >
                   <Icon name={t.icon} className="!text-xl" />
                   <span className="hidden sm:inline">{t.label}</span>
-                  <span className="sm:hidden">{t.id === 'ps5' ? 'PS5' : 'Xbox'}</span>
+                  <span className="sm:hidden">{t.shortLabel}</span>
                 </button>
               )
             })}

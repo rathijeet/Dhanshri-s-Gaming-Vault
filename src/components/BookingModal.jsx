@@ -66,6 +66,7 @@ const EMPTY = {
   address: '',
   days: 1,
   startDateTime: '',
+  extraController: false,
 }
 
 const FIELD_ORDER = ['consoleId', 'days', 'startDateTime', 'name', 'phone', 'address']
@@ -134,7 +135,11 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
     [form.startDateTime, form.days]
   )
 
-  const subtotal = selectedConsole ? selectedConsole.price * form.days : 0
+  const consoleSubtotal = selectedConsole ? selectedConsole.price * form.days : 0
+  const controllerPerDay = selectedConsole?.extraControllerPrice ?? 0
+  const controllerSubtotal =
+    form.extraController && selectedConsole ? controllerPerDay * form.days : 0
+  const subtotal = consoleSubtotal + controllerSubtotal
   const total = subtotal ? subtotal + DELIVERY_FEE : 0
 
   const phoneDigits = form.phone.replace(/\D/g, '')
@@ -200,6 +205,9 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
       `*Duration:* ${form.days} day${form.days > 1 ? 's' : ''} (24 hrs × ${form.days})`,
       `*Pickup:* ${formatDateTime(startDateObj)}`,
       `*Return by:* ${formatDateTime(endDate)}`,
+      form.extraController
+        ? `*Extra Controller:* Yes (₹${controllerPerDay}/day × ${form.days} = ₹${controllerSubtotal})`
+        : `*Extra Controller:* No`,
       `*Subtotal:* ₹${subtotal}`,
       `*Delivery:* ₹${DELIVERY_FEE}`,
       `*Total:* ₹${total}`,
@@ -363,6 +371,59 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
             </p>
           </div>
 
+          {/* Extras: second controller */}
+          <div>
+            <label className="font-label-mono text-label-mono text-on-surface-variant uppercase block mb-3">
+              Extras
+            </label>
+            <label
+              className={`flex items-center gap-4 p-4 rounded-xl border-2 transition-all ${
+                !selectedConsole
+                  ? 'border-outline-variant/20 bg-surface-container/50 opacity-60 cursor-not-allowed'
+                  : form.extraController
+                    ? 'border-primary-fixed bg-primary-fixed/10 cursor-pointer'
+                    : 'border-outline-variant/30 bg-surface-container hover:border-primary-fixed/50 cursor-pointer'
+              }`}
+            >
+              <input
+                type="checkbox"
+                checked={form.extraController}
+                disabled={!selectedConsole}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, extraController: e.target.checked }))
+                }
+                className="sr-only"
+              />
+              <span
+                aria-hidden="true"
+                className={`w-5 h-5 rounded border-2 flex-shrink-0 flex items-center justify-center transition-colors ${
+                  form.extraController
+                    ? 'border-primary-fixed bg-primary-fixed'
+                    : 'border-outline-variant'
+                }`}
+              >
+                {form.extraController && (
+                  <Icon name="check" className="text-on-primary-fixed !text-base" />
+                )}
+              </span>
+              <div className="flex justify-between items-start flex-1 min-w-0">
+                <div className="min-w-0">
+                  <p className="font-headline-sm text-body-lg font-bold text-on-surface">
+                    Add Second Controller
+                  </p>
+                  <p className="font-body-md text-sm text-on-surface-variant">
+                    {selectedConsole
+                      ? `For 2-player local co-op on your ${selectedConsole.name}`
+                      : 'Pick a console above to enable'}
+                  </p>
+                </div>
+                <span className="font-label-mono text-label-mono text-primary-fixed flex-shrink-0 ml-2">
+                  {selectedConsole ? `+₹${controllerPerDay}/d` : ''}
+                </span>
+              </div>
+            </label>
+          </div>
+
           {/* 3. Start datetime + auto end */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div ref={fieldRefs.startDateTime} className="scroll-mt-32">
@@ -453,8 +514,14 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
                     ? `${selectedConsole.name} × ${form.days} day${form.days > 1 ? 's' : ''}`
                     : 'Select a console'
                 }
-                value={subtotal ? `₹${subtotal}` : '—'}
+                value={consoleSubtotal ? `₹${consoleSubtotal}` : '—'}
               />
+              {form.extraController && selectedConsole && (
+                <Row
+                  label={`Extra controller × ${form.days} day${form.days > 1 ? 's' : ''}`}
+                  value={`₹${controllerSubtotal}`}
+                />
+              )}
               <Row label="Delivery & Setup" value={subtotal ? `₹${DELIVERY_FEE}` : '—'} />
               {startDateObj && !errors.startDateTime && (
                 <Row label="Pickup" value={formatDateTime(startDateObj)} />
