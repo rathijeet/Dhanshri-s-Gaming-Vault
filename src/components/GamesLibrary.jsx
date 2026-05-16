@@ -137,9 +137,9 @@ export default function GamesLibrary({ onBook }) {
     <>
       <section
         id="games"
-        className="py-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto scroll-mt-24"
+        className="py-12 md:py-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto scroll-mt-24"
       >
-        <div className="text-center mb-12 md:mb-16">
+        <div className="text-center mb-8 md:mb-16">
           <p className="font-label-mono text-label-mono text-primary-fixed uppercase mb-3">
             Pre-loaded Library
           </p>

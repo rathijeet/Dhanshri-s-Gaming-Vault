@@ -23,8 +23,8 @@ const steps = [
 
 export default function HowItWorks() {
   return (
-    <section id="how" className="py-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto scroll-mt-24">
-      <div className="text-center mb-16">
+    <section id="how" className="py-12 md:py-24 px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto scroll-mt-24">
+      <div className="text-center mb-8 md:mb-16">
         <h2 className="font-display-lg text-display-lg-mobile md:text-headline-md text-on-surface">How it Works</h2>
         <div className="w-24 h-1 bg-primary-fixed mx-auto mt-4 rounded-full"></div>
       </div>

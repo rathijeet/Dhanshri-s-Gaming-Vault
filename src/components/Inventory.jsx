@@ -1,5 +1,12 @@
+import { useState } from 'react'
 import { CONSOLES } from '../config'
 import { GAMES } from '../games'
+
+const TABS = [
+  { id: 'ps5', label: 'PlayStation 5', shortLabel: 'PS5', icon: 'sports_esports' },
+  { id: 'xbox', label: 'Xbox Series S', shortLabel: 'Xbox', icon: 'videogame_asset' },
+  { id: 'ps4', label: 'PlayStation 4', shortLabel: 'PS4', icon: 'stadia_controller' },
+]
 
 function ConsoleCard({ item, onBook }) {
   const games = GAMES[item.id] || []
@@ -67,10 +74,13 @@ function ConsoleCard({ item, onBook }) {
 }
 
 export default function Inventory({ onBook }) {
+  const [tab, setTab] = useState('ps5')
+  const active = CONSOLES.find((c) => c.id === tab) || CONSOLES[0]
+
   return (
     <section id="inventory" className="px-margin-mobile md:px-margin-desktop scroll-mt-24">
-      <div className="max-w-container-max mx-auto bg-surface-container-lowest/50 backdrop-blur-sm rounded-3xl border border-outline-variant/10 py-16 md:py-24 px-margin-mobile md:px-margin-desktop">
-        <div className="text-center mb-12 md:mb-16">
+      <div className="max-w-container-max mx-auto bg-surface-container-lowest/50 backdrop-blur-sm rounded-3xl border border-outline-variant/10 py-10 md:py-24 px-margin-mobile md:px-margin-desktop">
+        <div className="text-center mb-8 md:mb-16">
           <h2 className="font-display-lg text-display-lg-mobile md:text-headline-md text-on-surface mb-4">
             Elite Inventory
           </h2>
@@ -79,10 +89,37 @@ export default function Inventory({ onBook }) {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {CONSOLES.map((c) => (
-            <ConsoleCard key={c.id} item={c} onBook={onBook} />
-          ))}
+        <div className="flex justify-center mb-10">
+          <div
+            role="tablist"
+            aria-label="Choose console"
+            className="inline-flex bg-surface-container rounded-xl p-1 border border-outline-variant/20"
+          >
+            {TABS.map((t) => {
+              const isActive = tab === t.id
+              return (
+                <button
+                  key={t.id}
+                  role="tab"
+                  aria-selected={isActive}
+                  onClick={() => setTab(t.id)}
+                  className={`px-5 md:px-6 py-3 rounded-lg font-headline-sm text-body-md font-bold transition-colors flex items-center gap-2 ${
+                    isActive
+                      ? 'bg-primary-fixed text-on-primary-fixed'
+                      : 'text-on-surface-variant hover:text-on-surface'
+                  }`}
+                >
+                  <span className="material-symbols-outlined !text-xl">{t.icon}</span>
+                  <span className="hidden sm:inline">{t.label}</span>
+                  <span className="sm:hidden">{t.shortLabel}</span>
+                </button>
+              )
+            })}
+          </div>
+        </div>
+
+        <div className="max-w-2xl mx-auto">
+          <ConsoleCard item={active} onBook={onBook} />
         </div>
       </div>
     </section>

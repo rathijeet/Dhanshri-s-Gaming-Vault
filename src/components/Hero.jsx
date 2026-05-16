@@ -2,7 +2,7 @@ import Icon from './Icon'
 
 export default function Hero({ onBook }) {
   return (
-    <section className="relative overflow-hidden px-margin-mobile md:px-margin-desktop pt-16 pb-24 max-w-container-max mx-auto">
+    <section className="relative overflow-hidden px-margin-mobile md:px-margin-desktop pt-8 pb-12 md:pt-16 md:pb-24 max-w-container-max mx-auto">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-gutter items-center">
         <div className="z-10">
           <div className="inline-flex items-center gap-2 bg-surface-container-high border border-primary-fixed/20 px-3 py-1 rounded-full mb-6">
@@ -38,7 +38,7 @@ export default function Hero({ onBook }) {
           </div>
         </div>
 
-        <div className="relative mt-12 lg:mt-0">
+        <div className="relative mt-8 lg:mt-0 mx-auto w-3/5 max-w-xs lg:w-full lg:max-w-none">
           <div className="absolute -inset-4 bg-primary-fixed/10 blur-[100px] rounded-full"></div>
           <img
             className="relative z-10 w-full h-auto rounded-2xl border border-outline-variant/30 shadow-2xl"
