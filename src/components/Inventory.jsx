@@ -4,8 +4,8 @@ import { GAMES } from '../games'
 
 const TABS = [
   { id: 'ps5', label: 'PlayStation 5', shortLabel: 'PS5', icon: 'sports_esports' },
-  { id: 'xbox', label: 'Xbox Series S', shortLabel: 'Xbox', icon: 'videogame_asset' },
   { id: 'ps4', label: 'PlayStation 4', shortLabel: 'PS4', icon: 'stadia_controller' },
+  { id: 'xbox', label: 'Xbox Series S', shortLabel: 'Xbox', icon: 'videogame_asset' },
 ]
 
 function ConsoleCard({ item, onBook }) {
