@@ -8,8 +8,10 @@ import {
   MAX_RENTAL_DAYS,
   WHATSAPP_NUMBER,
 } from '../config'
-import { supabase } from '../lib/supabase'
 import Icon from './Icon'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY
 
 const pad = (n) => String(n).padStart(2, '0')
 
@@ -227,36 +229,42 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
     const text = encodeURIComponent(lines.join('\n'))
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`
 
-    // Open WhatsApp synchronously inside the user-gesture so iOS Safari
-    // doesn't block it as a popup.
+    // Send the booking with keepalive:true so the request survives the
+    // browser navigating away to WhatsApp. Fire first, then open WhatsApp
+    // synchronously to preserve the iOS Safari user gesture.
+    const payload = {
+      source: 'web',
+      console_id: selectedConsole.id,
+      console_name: selectedConsole.name,
+      console_price_per_day: selectedConsole.price,
+      extra_controller: form.extraController,
+      extra_controller_price_per_day: controllerPerDay,
+      days: form.days,
+      start_at: startDateObj.toISOString(),
+      end_at: endDate.toISOString(),
+      customer_name: form.name.trim(),
+      phone: phoneDigits,
+      address: form.address.trim(),
+      console_subtotal: consoleSubtotal,
+      controller_subtotal: controllerSubtotal,
+      delivery_fee: DELIVERY_FEE,
+      total,
+      status: 'pending',
+    }
+
+    fetch(`${SUPABASE_URL}/rest/v1/bookings`, {
+      method: 'POST',
+      headers: {
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        'Content-Type': 'application/json',
+        Prefer: 'return=minimal',
+      },
+      body: JSON.stringify(payload),
+      keepalive: true,
+    }).catch((err) => console.error('[booking] save failed', err))
+
     window.open(url, '_blank', 'noopener,noreferrer')
-
-    // Fire-and-forget the Supabase save. Customer flow doesn't wait on it.
-    supabase
-      .from('bookings')
-      .insert({
-        source: 'web',
-        console_id: selectedConsole.id,
-        console_name: selectedConsole.name,
-        console_price_per_day: selectedConsole.price,
-        extra_controller: form.extraController,
-        extra_controller_price_per_day: controllerPerDay,
-        days: form.days,
-        start_at: startDateObj.toISOString(),
-        end_at: endDate.toISOString(),
-        customer_name: form.name.trim(),
-        phone: phoneDigits,
-        address: form.address.trim(),
-        console_subtotal: consoleSubtotal,
-        controller_subtotal: controllerSubtotal,
-        delivery_fee: DELIVERY_FEE,
-        total,
-        status: 'pending',
-      })
-      .then(({ error }) => {
-        if (error) console.error('[booking] failed to save', error)
-      })
-
     setSubmitting(false)
     onClose()
   }
