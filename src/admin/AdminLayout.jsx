@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useAuth } from './useAuth'
 import Logo from '../components/Logo'
 import Icon from '../components/Icon'
+import ConfirmDialog from './ConfirmDialog'
 
 const TABS = [
   { to: '/admin', label: 'Dashboard', icon: 'dashboard', end: true },
@@ -12,9 +14,14 @@ const TABS = [
 export default function AdminLayout() {
   const navigate = useNavigate()
   const { session, signOut } = useAuth()
+  const [logoutOpen, setLogoutOpen] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
-  const handleSignOut = async () => {
+  const confirmSignOut = async () => {
+    setSigningOut(true)
     await signOut()
+    setSigningOut(false)
+    setLogoutOpen(false)
     navigate('/admin/login', { replace: true })
   }
 
@@ -34,7 +41,7 @@ export default function AdminLayout() {
             </span>
             <button
               type="button"
-              onClick={handleSignOut}
+              onClick={() => setLogoutOpen(true)}
               className="border border-outline-variant/40 text-on-surface-variant px-3 py-2 rounded-lg font-bold hover:border-primary-fixed/50 hover:text-on-surface transition-all flex items-center gap-2 text-sm"
             >
               <Icon name="logout" className="!text-base" />
@@ -67,6 +74,18 @@ export default function AdminLayout() {
       <main className="flex-1 max-w-6xl w-full mx-auto px-6 py-8">
         <Outlet />
       </main>
+
+      <ConfirmDialog
+        open={logoutOpen}
+        onClose={() => !signingOut && setLogoutOpen(false)}
+        onConfirm={confirmSignOut}
+        title="Sign out?"
+        message="You'll need to enter your credentials again to access the admin panel."
+        confirmLabel={signingOut ? 'Signing out…' : 'Sign out'}
+        confirmIcon="logout"
+        variant="danger"
+        busy={signingOut}
+      />
     </div>
   )
 }
