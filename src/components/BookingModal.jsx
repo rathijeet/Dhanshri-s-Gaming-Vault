@@ -8,6 +8,7 @@ import {
   MAX_RENTAL_DAYS,
   WHATSAPP_NUMBER,
 } from '../config'
+import { supabase } from '../lib/supabase'
 import Icon from './Icon'
 
 const pad = (n) => String(n).padStart(2, '0')
@@ -75,6 +76,7 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
   const [form, setForm] = useState(EMPTY)
   const [touched, setTouched] = useState(false)
   const [scrollTarget, setScrollTarget] = useState('')
+  const [submitting, setSubmitting] = useState(false)
   const fieldRefs = {
     consoleId: useRef(null),
     days: useRef(null),
@@ -189,13 +191,41 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
     setForm((f) => ({ ...f, startDateTime: toLocalInput(clamped) }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e?.preventDefault?.()
-    if (!isValid) {
-      setTouched(true)
-      const firstBad = FIELD_ORDER.find((f) => errors[f])
-      if (firstBad) setScrollTarget(firstBad)
+    if (!isValid || submitting) {
+      if (!isValid) {
+        setTouched(true)
+        const firstBad = FIELD_ORDER.find((f) => errors[f])
+        if (firstBad) setScrollTarget(firstBad)
+      }
       return
+    }
+
+    setSubmitting(true)
+
+    const { error } = await supabase.from('bookings').insert({
+      source: 'web',
+      console_id: selectedConsole.id,
+      console_name: selectedConsole.name,
+      console_price_per_day: selectedConsole.price,
+      extra_controller: form.extraController,
+      extra_controller_price_per_day: controllerPerDay,
+      days: form.days,
+      start_at: startDateObj.toISOString(),
+      end_at: endDate.toISOString(),
+      customer_name: form.name.trim(),
+      phone: phoneDigits,
+      address: form.address.trim(),
+      console_subtotal: consoleSubtotal,
+      controller_subtotal: controllerSubtotal,
+      delivery_fee: DELIVERY_FEE,
+      total,
+      status: 'pending',
+    })
+
+    if (error) {
+      console.error('[booking] failed to save to Supabase, continuing to WhatsApp', error)
     }
 
     const lines = [
@@ -221,6 +251,7 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
     const text = encodeURIComponent(lines.join('\n'))
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`
     window.open(url, '_blank', 'noopener,noreferrer')
+    setSubmitting(false)
     onClose()
   }
 
@@ -549,10 +580,11 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
             <button
               type="button"
               onClick={handleSubmit}
-              className="flex-1 bg-primary-fixed text-on-primary-fixed px-6 py-4 rounded-xl font-bold font-headline-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform neon-glow"
+              disabled={submitting}
+              className="flex-1 bg-primary-fixed text-on-primary-fixed px-6 py-4 rounded-xl font-bold font-headline-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform neon-glow disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              <Icon name="chat" className="!text-xl" />
-              Book Via WhatsApp
+              <Icon name={submitting ? 'progress_activity' : 'chat'} className={`!text-xl ${submitting ? 'animate-spin' : ''}`} />
+              {submitting ? 'Saving…' : 'Book Via WhatsApp'}
             </button>
           </div>
         </form>

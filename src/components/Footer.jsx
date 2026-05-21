@@ -27,6 +27,13 @@ export default function Footer({ onSupport, onOpenPolicy }) {
           <p className="font-body-md text-body-md text-on-surface-variant max-w-xs">
             © 2026 Dhanshri&apos;s Gaming Vault, Nagpur. Pro hardware, local speed. Elevating Nagpur&apos;s gaming culture.
           </p>
+          <a
+            href="/admin/login"
+            aria-label="Admin"
+            className="text-on-surface-variant/30 hover:text-primary-fixed transition-colors inline-flex"
+          >
+            <Icon name="settings" className="!text-base" />
+          </a>
         </div>
 
         <div className="flex flex-col gap-4 items-center md:items-end">
