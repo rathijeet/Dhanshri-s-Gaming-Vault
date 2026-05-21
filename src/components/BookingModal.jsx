@@ -191,7 +191,7 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
     setForm((f) => ({ ...f, startDateTime: toLocalInput(clamped) }))
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e?.preventDefault?.()
     if (!isValid || submitting) {
       if (!isValid) {
@@ -203,30 +203,6 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
     }
 
     setSubmitting(true)
-
-    const { error } = await supabase.from('bookings').insert({
-      source: 'web',
-      console_id: selectedConsole.id,
-      console_name: selectedConsole.name,
-      console_price_per_day: selectedConsole.price,
-      extra_controller: form.extraController,
-      extra_controller_price_per_day: controllerPerDay,
-      days: form.days,
-      start_at: startDateObj.toISOString(),
-      end_at: endDate.toISOString(),
-      customer_name: form.name.trim(),
-      phone: phoneDigits,
-      address: form.address.trim(),
-      console_subtotal: consoleSubtotal,
-      controller_subtotal: controllerSubtotal,
-      delivery_fee: DELIVERY_FEE,
-      total,
-      status: 'pending',
-    })
-
-    if (error) {
-      console.error('[booking] failed to save to Supabase, continuing to WhatsApp', error)
-    }
 
     const lines = [
       `Hi ${BUSINESS_NAME}! I'd like to book a rental.`,
@@ -250,7 +226,37 @@ export default function BookingModal({ open, onClose, preselectedConsoleId }) {
     ]
     const text = encodeURIComponent(lines.join('\n'))
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`
+
+    // Open WhatsApp synchronously inside the user-gesture so iOS Safari
+    // doesn't block it as a popup.
     window.open(url, '_blank', 'noopener,noreferrer')
+
+    // Fire-and-forget the Supabase save. Customer flow doesn't wait on it.
+    supabase
+      .from('bookings')
+      .insert({
+        source: 'web',
+        console_id: selectedConsole.id,
+        console_name: selectedConsole.name,
+        console_price_per_day: selectedConsole.price,
+        extra_controller: form.extraController,
+        extra_controller_price_per_day: controllerPerDay,
+        days: form.days,
+        start_at: startDateObj.toISOString(),
+        end_at: endDate.toISOString(),
+        customer_name: form.name.trim(),
+        phone: phoneDigits,
+        address: form.address.trim(),
+        console_subtotal: consoleSubtotal,
+        controller_subtotal: controllerSubtotal,
+        delivery_fee: DELIVERY_FEE,
+        total,
+        status: 'pending',
+      })
+      .then(({ error }) => {
+        if (error) console.error('[booking] failed to save', error)
+      })
+
     setSubmitting(false)
     onClose()
   }
