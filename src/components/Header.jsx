@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import Logo from './Logo'
 
@@ -41,6 +42,13 @@ export default function Header({ onBook }) {
               {l.label}
             </a>
           ))}
+          <Link
+            to="/apparels"
+            className="text-on-surface-variant hover:text-primary-fixed transition-colors font-body-md text-body-md flex items-center gap-1"
+          >
+            <Icon name="storefront" className="!text-base" />
+            Shop
+          </Link>
           <button
             onClick={() => onBook()}
             className="bg-primary-fixed text-on-primary-fixed px-6 py-2 rounded-lg font-bold hover:scale-95 transition-all neon-glow"
@@ -72,6 +80,14 @@ export default function Header({ onBook }) {
                 {l.label}
               </a>
             ))}
+            <Link
+              to="/apparels"
+              onClick={close}
+              className="py-4 font-body-md text-body-md text-on-surface hover:text-primary-fixed border-b border-outline-variant/10 flex items-center gap-2"
+            >
+              <Icon name="storefront" className="!text-base" />
+              Shop
+            </Link>
             <button
               onClick={() => {
                 close()
