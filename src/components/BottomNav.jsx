@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import Icon from './Icon'
+import { useShopEnabled } from '../SettingsContext'
 
 const SECTION_TO_TAB = {
   inventory: 'rent',
@@ -9,6 +11,7 @@ const SECTION_TO_TAB = {
 
 export default function BottomNav({ onBook, onSupport }) {
   const [activeTab, setActiveTab] = useState('rent')
+  const shopEnabled = useShopEnabled()
 
   useEffect(() => {
     const ids = Object.keys(SECTION_TO_TAB)
@@ -33,6 +36,7 @@ export default function BottomNav({ onBook, onSupport }) {
 
   const items = [
     { id: 'rent', icon: 'sports_esports', label: 'Rent', onClick: () => onBook() },
+    ...(shopEnabled ? [{ id: 'shop', icon: 'storefront', label: 'Shop', to: '/apparels' }] : []),
     { id: 'process', icon: 'sync_alt', label: 'Process', href: '#how' },
     { id: 'verify', icon: 'verified_user', label: 'Verify', href: '#trust' },
     { id: 'support', icon: 'support_agent', label: 'Support', onClick: () => onSupport() },
@@ -51,11 +55,21 @@ export default function BottomNav({ onBook, onSupport }) {
             <span className="font-label-mono text-[10px] uppercase mt-1">{it.label}</span>
           </>
         )
-        return it.onClick ? (
-          <button key={it.label} onClick={it.onClick} className={className}>
-            {content}
-          </button>
-        ) : (
+        if (it.onClick) {
+          return (
+            <button key={it.label} onClick={it.onClick} className={className}>
+              {content}
+            </button>
+          )
+        }
+        if (it.to) {
+          return (
+            <Link key={it.label} to={it.to} className={className}>
+              {content}
+            </Link>
+          )
+        }
+        return (
           <a
             key={it.label}
             href={it.href}
