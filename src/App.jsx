@@ -8,6 +8,7 @@ import AdminExpenses from './admin/AdminExpenses'
 import AdminApparels from './admin/AdminApparels'
 import AdminOrders from './admin/AdminOrders'
 import AdminOrderDetail from './admin/AdminOrderDetail'
+import AdminSettings from './admin/AdminSettings'
 import ProtectedRoute from './admin/ProtectedRoute'
 import ApparelsLayout from './apparels/ApparelsLayout'
 import ApparelsListing from './apparels/ApparelsListing'
@@ -15,9 +16,11 @@ import ApparelDetail from './apparels/ApparelDetail'
 import ApparelsCart from './apparels/ApparelsCart'
 import ApparelsCheckout from './apparels/ApparelsCheckout'
 import ApparelsOrderSuccess from './apparels/ApparelsOrderSuccess'
+import { SettingsProvider } from './SettingsContext'
 
 export default function App() {
   return (
+    <SettingsProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PublicSite />} />
@@ -43,8 +46,10 @@ export default function App() {
           <Route path="orders" element={<AdminOrders />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
           <Route path="expenses" element={<AdminExpenses />} />
+          <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>
     </BrowserRouter>
+    </SettingsProvider>
   )
 }

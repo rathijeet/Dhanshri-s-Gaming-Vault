@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import Logo from './Logo'
+import { useShopEnabled } from '../SettingsContext'
 
 const NAV_LINKS = [
   { href: '#inventory', label: 'Inventory' },
@@ -12,6 +13,7 @@ const NAV_LINKS = [
 export default function Header({ onBook }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const close = () => setMenuOpen(false)
+  const shopEnabled = useShopEnabled()
 
   return (
     <header className="bg-surface/90 backdrop-blur-md sticky top-0 z-50 border-b border-outline-variant/20 shadow-lg shadow-primary-fixed/5">
@@ -42,13 +44,15 @@ export default function Header({ onBook }) {
               {l.label}
             </a>
           ))}
-          <Link
-            to="/apparels"
-            className="text-on-surface-variant hover:text-primary-fixed transition-colors font-body-md text-body-md flex items-center gap-1"
-          >
-            <Icon name="storefront" className="!text-base" />
-            Shop
-          </Link>
+          {shopEnabled && (
+            <Link
+              to="/apparels"
+              className="text-on-surface-variant hover:text-primary-fixed transition-colors font-body-md text-body-md flex items-center gap-1"
+            >
+              <Icon name="storefront" className="!text-base" />
+              Shop
+            </Link>
+          )}
           <button
             onClick={() => onBook()}
             className="bg-primary-fixed text-on-primary-fixed px-6 py-2 rounded-lg font-bold hover:scale-95 transition-all neon-glow"
@@ -80,14 +84,16 @@ export default function Header({ onBook }) {
                 {l.label}
               </a>
             ))}
-            <Link
-              to="/apparels"
-              onClick={close}
-              className="py-4 font-body-md text-body-md text-on-surface hover:text-primary-fixed border-b border-outline-variant/10 flex items-center gap-2"
-            >
-              <Icon name="storefront" className="!text-base" />
-              Shop
-            </Link>
+            {shopEnabled && (
+              <Link
+                to="/apparels"
+                onClick={close}
+                className="py-4 font-body-md text-body-md text-on-surface hover:text-primary-fixed border-b border-outline-variant/10 flex items-center gap-2"
+              >
+                <Icon name="storefront" className="!text-base" />
+                Shop
+              </Link>
+            )}
             <button
               onClick={() => {
                 close()

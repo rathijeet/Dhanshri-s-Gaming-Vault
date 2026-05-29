@@ -11,6 +11,7 @@ const TABS = [
   { to: '/admin/apparels', label: 'Products', icon: 'inventory_2' },
   { to: '/admin/orders', label: 'Orders', icon: 'receipt_long' },
   { to: '/admin/expenses', label: 'Expenses', icon: 'savings' },
+  { to: '/admin/settings', label: 'Settings', icon: 'tune' },
 ]
 
 export default function AdminLayout() {
