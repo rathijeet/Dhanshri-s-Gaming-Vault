@@ -16,6 +16,9 @@ const SLIDE_MS = 3200
 const MAX_SLIDES = 6
 
 const MINUTE = 60 * 1000
+const ARROW =
+  'w-9 h-9 rounded-full bg-surface-container border border-outline-variant/30 text-on-surface-variant hover:text-on-primary-fixed hover:bg-primary-fixed hover:border-primary-fixed transition-colors flex items-center justify-center flex-shrink-0'
+
 const DAY = 24 * 60 * 60 * 1000
 // How long a visitor is left alone, by how they left the popup. Someone who opened
 // the store has seen it and is left alone far longer than someone who waved it away;
@@ -95,14 +98,29 @@ export default function StoreLaunchModal() {
   const resumeRef = useRef(null)
   const latestRef = useRef(null) // newest product this visitor has now been shown
 
-  // Only a deliberate tap on a dot pauses, and only briefly - hovering must not
-  // stop the rotation, or a centred popup never advances at all.
-  const selectSlide = useCallback((i) => {
-    setIndex(i)
+  // Manual control pauses the rotation briefly, then hands it back. Hovering must
+  // not pause, or a centred popup never advances while it is being read.
+  const pauseBriefly = useCallback(() => {
     setPaused(true)
     clearTimeout(resumeRef.current)
     resumeRef.current = setTimeout(() => setPaused(false), 6000)
   }, [])
+
+  const selectSlide = useCallback(
+    (i) => {
+      setIndex(i)
+      pauseBriefly()
+    },
+    [pauseBriefly]
+  )
+
+  const step = useCallback(
+    (delta) => {
+      setIndex((i) => (i + delta + slides.length) % slides.length)
+      pauseBriefly()
+    },
+    [slides.length, pauseBriefly]
+  )
 
   useEffect(() => () => clearTimeout(resumeRef.current), [])
 
@@ -187,14 +205,18 @@ export default function StoreLaunchModal() {
 
   useEffect(() => {
     if (!open) return
-    const onKey = (e) => e.key === 'Escape' && close()
+    const onKey = (e) => {
+      if (e.key === 'Escape') return close()
+      if (e.key === 'ArrowRight') return step(1)
+      if (e.key === 'ArrowLeft') return step(-1)
+    }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
     return () => {
       document.removeEventListener('keydown', onKey)
       document.body.style.overflow = ''
     }
-  }, [open, close])
+  }, [open, close, step])
 
   if (!open) return null
 
@@ -270,19 +292,39 @@ export default function StoreLaunchModal() {
           </div>
 
           {slides.length > 1 && (
-            <div className="flex justify-center gap-1.5 mt-3">
-              {slides.map((s, i) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => selectSlide(i)}
-                  aria-label={`Show ${s.title}`}
-                  aria-current={i === safeIndex}
-                  className={`h-1.5 rounded-full transition-all ${
-                    i === safeIndex ? 'w-6 bg-primary-fixed' : 'w-1.5 bg-outline-variant/50'
-                  }`}
-                />
-              ))}
+            <div className="flex items-center justify-center gap-3 mt-3">
+              <button
+                type="button"
+                onClick={() => step(-1)}
+                aria-label="Previous"
+                className={ARROW}
+              >
+                <Icon name="chevron_left" className="!text-xl" />
+              </button>
+
+              <div className="flex items-center gap-1.5">
+                {slides.map((s, i) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => selectSlide(i)}
+                    aria-label={`Show ${s.title}`}
+                    aria-current={i === safeIndex}
+                    className={`h-1.5 rounded-full transition-all ${
+                      i === safeIndex ? 'w-6 bg-primary-fixed' : 'w-1.5 bg-outline-variant/50'
+                    }`}
+                  />
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => step(1)}
+                aria-label="Next"
+                className={ARROW}
+              >
+                <Icon name="chevron_right" className="!text-xl" />
+              </button>
             </div>
           )}
         </div>
