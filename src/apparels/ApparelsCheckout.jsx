@@ -27,7 +27,7 @@ const EMPTY = {
 }
 
 export default function ApparelsCheckout() {
-  const { items, subtotal, count, clear } = useCart()
+  const { items, subtotal, count, clear, removeItem } = useCart()
   const navigate = useNavigate()
 
   const [form, setForm]             = useState(EMPTY)
@@ -279,9 +279,21 @@ export default function ApparelsCheckout() {
                       {[variantSummary(it.size, it.color), `× ${it.qty}`].filter(Boolean).join(' ')}
                     </p>
                   </div>
-                  <p className="font-display-lg text-sm font-bold text-primary-fixed">
-                    {formatRupees(it.unit_price * it.qty)}
-                  </p>
+                  <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    <p className="font-display-lg text-sm font-bold text-primary-fixed">
+                      {formatRupees(it.unit_price * it.qty)}
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(it.variant_id)}
+                      disabled={submitting}
+                      aria-label={`Remove ${it.name} from order`}
+                      title="Remove"
+                      className="w-7 h-7 rounded-md text-on-surface-variant hover:text-red-400 hover:bg-red-500/10 transition-colors flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Icon name="delete" className="!text-base" />
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>
