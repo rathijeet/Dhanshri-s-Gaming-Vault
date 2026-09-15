@@ -3,6 +3,12 @@ import { supabase } from '../lib/supabase'
 // Suggested categories — admin can type any custom value too.
 // `id` is what gets stored in the DB; `label` and `icon` are display-only.
 export const CATEGORIES = [
+  { id: 'console',     label: 'Gaming Console', icon: 'videogame_asset' },
+  { id: 'bundle',      label: 'Gaming Bundle',  icon: 'package_2' },
+  { id: 'gaming_accessory', label: 'Gaming Accessory', icon: 'stadia_controller' },
+  { id: 'ps5_game',    label: 'PS5 Game',       icon: 'sports_esports' },
+  { id: 'ps4_game',    label: 'PS4 Game',       icon: 'sports_esports' },
+  { id: 'xbox_game',   label: 'Xbox Game',      icon: 'sports_esports' },
   { id: 'tshirt',      label: 'T-Shirt',        icon: 'checkroom' },
   { id: 'pants',       label: 'Pants',          icon: 'styler' },
   { id: 'combo',       label: 'Combo',          icon: 'inventory_2' },
@@ -37,6 +43,17 @@ export function categoryLabel(id) {
 export function categoryIcon(id) {
   return CATEGORY_ICON[id] || 'inventory_2'
 }
+
+// Only clothing-style categories have a real size/colour axis. Everything else
+// (a console, a game, a TV) is one SKU, so the form collects a plain stock number
+// and builds the single variant itself instead of making the admin invent a size.
+export const VARIANT_CATEGORIES = new Set(['tshirt', 'pants', 'hoodie', 'footwear', 'combo'])
+
+export function usesVariants(category) {
+  return VARIANT_CATEGORIES.has(category)
+}
+
+export const SINGLE_VARIANT_SIZE = 'Standard'
 
 export const GENDERS = [
   { id: 'na',      label: 'Not applicable' },
@@ -140,6 +157,35 @@ export async function getProductWithRelations(id) {
   return { product, images: images || [], variants: variants || [] }
 }
 
+// apparel_products.slug is UNIQUE. The same title legitimately repeats across
+// platforms (one game on PS5 and PS4), so resolve collisions instead of letting
+// the insert fail: prefer a platform suffix, then fall back to -2, -3 …
+const CATEGORY_SLUG_HINT = {
+  ps5_game: 'ps5',
+  ps4_game: 'ps4',
+  xbox_game: 'xbox',
+  console: 'console',
+}
+
+export async function uniqueProductSlug(base, { excludeId, category } = {}) {
+  const root = slugify(base) || 'product'
+
+  let q = supabase.from('apparel_products').select('id, slug').like('slug', `${root}%`)
+  if (excludeId) q = q.neq('id', excludeId)
+  const { data, error } = await q
+  if (error) throw error
+
+  const taken = new Set((data || []).map((r) => r.slug))
+  if (!taken.has(root)) return root
+
+  const hint = CATEGORY_SLUG_HINT[category]
+  if (hint && !taken.has(`${root}-${hint}`)) return `${root}-${hint}`
+
+  let n = 2
+  while (taken.has(`${root}-${n}`)) n += 1
+  return `${root}-${n}`
+}
+
 export async function upsertProduct(payload, id) {
   if (id) {
     const { data, error } = await supabase
@@ -236,7 +282,89 @@ const T_TEXT   = (label, placeholder) => ({ label, type: 'text', placeholder })
 const T_SELECT = (label, options)     => ({ label, type: 'select', options })
 const T_NUM    = (label, placeholder) => ({ label, type: 'number', placeholder })
 
+const GAME_SPECS = (platform) => [
+  T_TEXT('Title'),
+  T_TEXT('Publisher', 'e.g. Rockstar Games'),
+  T_TEXT('Genre', 'e.g. Action-Adventure'),
+  T_SELECT('Platform', [platform]),
+  T_SELECT('Format', ['Disc', 'Digital Code']),
+  T_SELECT('Condition', ['New / Sealed', 'Pre-owned']),
+  T_TEXT('Release Year', 'e.g. 2024'),
+  T_SELECT('Age Rating', ['3+', '7+', '12+', '16+', '18+']),
+  T_TEXT('Players', 'e.g. 1-4 players'),
+  T_SELECT('Online Play', ['Yes', 'No']),
+  T_TEXT('Language', 'e.g. English'),
+]
+
 export const SPEC_TEMPLATES = {
+  console: [
+    T_TEXT('Brand', 'e.g. Sony, Microsoft'),
+    T_TEXT('Model', 'e.g. PlayStation 5 Slim'),
+    T_SELECT('Edition', ['Disc Edition', 'Digital Edition', 'Standard', 'Bundle']),
+    T_SELECT('Storage', ['500 GB', '825 GB', '1 TB', '2 TB']),
+    T_NUM('Controllers Included'),
+    T_SELECT('Max Resolution', ['1080p', '1440p', '4K', '8K']),
+    T_TEXT('Connectivity', 'e.g. Wi-Fi, Bluetooth, HDMI 2.1'),
+    T_SELECT('Condition', ['New / Sealed', 'Pre-owned']),
+    T_TEXT('In the Box'),
+    T_TEXT('Warranty', 'e.g. 1 year manufacturer'),
+  ],
+
+  bundle: [
+    T_SELECT('Platform', ['PlayStation 5', 'PlayStation 4', 'Xbox Series X|S', 'Mixed']),
+    T_TEXT('Console Included', 'e.g. PlayStation 5 Slim 1TB Disc Edition'),
+    T_NUM('Controllers Included'),
+    T_TEXT('Games Included', 'e.g. EA FC 25, Spider-Man 2'),
+    T_TEXT('Pre-order Titles', 'e.g. GTA 6 — releases later, reserved with this bundle'),
+    T_TEXT('Accessories Included', 'e.g. Charging dock, headset'),
+    T_TEXT('Extra Warranty / Support'),
+    T_SELECT('Condition', ['New / Sealed', 'Pre-owned']),
+    T_TEXT('Saving vs Buying Separately', 'e.g. ₹4,000'),
+    T_TEXT('Offer Valid Till'),
+  ],
+
+  // One category for everything that plugs into a console - the Type row is what
+  // separates a controller from a stand, so new accessory kinds need no new category.
+  gaming_accessory: [
+    T_SELECT('Type', [
+      'Controller',
+      'Charging Dock / Stand',
+      'Cooling Stand',
+      'Vertical Stand',
+      'Headset',
+      'Headset Stand',
+      'Steering Wheel',
+      'Arcade Stick',
+      'Carry Case',
+      'Skin / Cover',
+      'Cable',
+      'Storage / Memory',
+      'VR Accessory',
+      'Other',
+    ]),
+    T_SELECT('Compatible With', [
+      'PlayStation 5',
+      'PlayStation 4',
+      'Xbox Series X|S',
+      'Xbox One',
+      'PC',
+      'Multi-platform',
+    ]),
+    T_SELECT('Connectivity', ['Wireless', 'Wired', 'Wired + Wireless', 'Not applicable']),
+    T_TEXT('Brand', 'e.g. Sony, Microsoft'),
+    T_TEXT('Model', 'e.g. DualSense Edge'),
+    T_TEXT('Colour', 'e.g. Midnight Black'),
+    T_TEXT('Battery Life', 'e.g. 12 hours'),
+    T_TEXT('Charging', 'e.g. USB-C'),
+    T_SELECT('Condition', ['New / Sealed', 'Pre-owned']),
+    T_TEXT('In the Box'),
+    T_TEXT('Warranty'),
+  ],
+
+  ps5_game: GAME_SPECS('PlayStation 5'),
+  ps4_game: GAME_SPECS('PlayStation 4'),
+  xbox_game: GAME_SPECS('Xbox Series X|S'),
+
   mobile: [
     T_TEXT('Brand', 'e.g. Samsung'),
     T_TEXT('Model'),

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import Icon from '../components/Icon'
-import { categoryLabel, genderLabel, formatRupees, getProductBySlug } from './publicApparelHelpers'
+import { categoryLabel, genderLabel, formatRupees, getProductBySlug, PLACEHOLDER_SIZES } from './publicApparelHelpers'
 import { useCart } from './CartContext'
 
 export default function ApparelDetail() {
@@ -17,6 +17,7 @@ export default function ApparelDetail() {
   const [selSize, setSelSize]     = useState('')
   const [selColor, setSelColor]   = useState('')
   const [qty, setQty]             = useState(1)
+  const [qtyError, setQtyError]   = useState('')
   const [added, setAdded]         = useState(false)
 
   useEffect(() => {
@@ -27,6 +28,7 @@ export default function ApparelDetail() {
     setSelSize('')
     setSelColor('')
     setQty(1)
+    setQtyError('')
     getProductBySlug(slug)
       .then((d) => { if (!cancelled) setData(d) })
       .catch((err) => { if (!cancelled) setError(err.message || 'Failed to load') })
@@ -39,31 +41,65 @@ export default function ApparelDetail() {
   const variants = data?.variants || []
 
   const sizes  = useMemo(() => Array.from(new Set(variants.map((v) => v.size))), [variants])
+  const sizeForColors = selSize || (sizes.length === 1 ? sizes[0] : '')
   const colors = useMemo(() => {
-    if (!selSize) return Array.from(new Set(variants.map((v) => v.color)))
-    return Array.from(new Set(variants.filter((v) => v.size === selSize).map((v) => v.color)))
-  }, [variants, selSize])
+    if (!sizeForColors) return Array.from(new Set(variants.map((v) => v.color)))
+    return Array.from(new Set(variants.filter((v) => v.size === sizeForColors).map((v) => v.color)))
+  }, [variants, sizeForColors])
+
+  // A single-option product (most games and consoles) has nothing to choose, so
+  // resolve it without waiting for a click. Only a genuine multi-option product
+  // stays unresolved until the shopper picks.
+  // A synthetic single variant (console, game) carries no real choice, so the
+  // selector stays hidden. Genuine one-size-left apparel still shows its size.
+  const showSizes = sizes.length > 1 || (sizes.length === 1 && !PLACEHOLDER_SIZES.includes(sizes[0]))
+
+  const effSize  = sizeForColors
+  const effColor = selColor || (colors.length === 1 ? colors[0] : '')
 
   const activeVariant = useMemo(() => {
-    if (!selSize || !selColor) return null
-    return variants.find((v) => v.size === selSize && v.color === selColor) || null
-  }, [variants, selSize, selColor])
+    if (!variants.length) return null
+    if (sizes.length > 0 && !effSize) return null
+    if (colors.length > 0 && !effColor) return null
+    return (
+      variants.find(
+        (v) =>
+          (sizes.length === 0 || v.size === effSize) &&
+          (colors.length === 0 || v.color === effColor)
+      ) || null
+    )
+  }, [variants, sizes, colors, effSize, effColor])
 
-  const inStock = (activeVariant?.quantity || 0) > 0
+  const maxQty  = activeVariant?.quantity || 0
+  const inStock = maxQty > 0
+
+  // Derived, not synced: a variant switch onto smaller stock clamps the shown qty
+  // without an extra render pass, and switching back restores what was picked.
+  const shownQty = Math.min(Math.max(1, qty), Math.max(1, maxQty))
+
+  const increaseQty = () => {
+    if (!activeVariant) return
+    if (shownQty >= maxQty) {
+      setQtyError(`Only ${maxQty} available in this option.`)
+      return
+    }
+    setQtyError('')
+    setQty(shownQty + 1)
+  }
+
+  const decreaseQty = () => {
+    setQtyError('')
+    setQty(Math.max(1, shownQty - 1))
+  }
 
   // Reset color when size changes if previously selected color no longer available
   useEffect(() => {
     if (selSize && selColor && !colors.includes(selColor)) setSelColor('')
   }, [selSize, selColor, colors])
 
-  // Default single-color products
-  useEffect(() => {
-    if (!selColor && colors.length === 1) setSelColor(colors[0])
-  }, [colors, selColor])
-
   const handleAdd = () => {
-    if (!product || !activeVariant || !inStock) return
-    const safeQty = Math.min(qty, activeVariant.quantity)
+    if (!product || !activeVariant || !inStock) return false
+    const safeQty = Math.min(shownQty, maxQty)
     addItem({
       variant_id: activeVariant.id,
       product_id: product.id,
@@ -79,11 +115,12 @@ export default function ApparelDetail() {
     }, safeQty)
     setAdded(true)
     setTimeout(() => setAdded(false), 1800)
+    return true
   }
 
   const handleBuyNow = () => {
-    handleAdd()
-    setTimeout(() => navigate('/apparels/cart'), 100)
+    if (!handleAdd()) return
+    navigate('/apparels/checkout')
   }
 
   if (loading) {
@@ -212,20 +249,20 @@ export default function ApparelDetail() {
           )}
 
           {/* OPTION 1 (size / weight / pack / …) */}
-          {sizes.length > 0 && (
+          {showSizes && (
             <div>
               <p className="font-label-mono text-label-mono text-on-surface-variant uppercase mb-2">
                 Select {opt1Label.toLowerCase()}
               </p>
               <div className="flex flex-wrap gap-2">
                 {sizes.map((s) => {
-                  const active = selSize === s
+                  const active = effSize === s
                   const anyStock = variants.some((v) => v.size === s && (v.quantity || 0) > 0)
                   return (
                     <button
                       key={s}
                       type="button"
-                      onClick={() => setSelSize(s)}
+                      onClick={() => { setSelSize(s); setQtyError('') }}
                       disabled={!anyStock}
                       className={`min-w-[3rem] px-3 py-2 rounded-lg border-2 font-body-md font-bold text-sm transition-all ${
                         active
@@ -249,12 +286,12 @@ export default function ApparelDetail() {
               <p className="font-label-mono text-label-mono text-on-surface-variant uppercase mb-2">{opt2Label}</p>
               <div className="flex flex-wrap gap-2">
                 {colors.map((c) => {
-                  const active = selColor === c
+                  const active = effColor === c
                   return (
                     <button
                       key={c}
                       type="button"
-                      onClick={() => setSelColor(c)}
+                      onClick={() => { setSelColor(c); setQtyError('') }}
                       className={`px-3 py-2 rounded-lg border-2 font-body-md font-bold text-sm transition-all ${
                         active
                           ? 'border-primary-fixed bg-primary-fixed text-on-primary-fixed'
@@ -275,26 +312,34 @@ export default function ApparelDetail() {
             <div className="inline-flex items-center bg-surface-container border border-outline-variant/30 rounded-lg overflow-hidden">
               <button
                 type="button"
-                onClick={() => setQty((q) => Math.max(1, q - 1))}
+                onClick={decreaseQty}
                 className="w-10 h-10 text-on-surface-variant hover:text-on-surface"
                 aria-label="Decrease"
               >
                 <Icon name="remove" className="!text-base" />
               </button>
-              <span className="w-12 text-center font-body-md font-bold text-on-surface">{qty}</span>
+              <span className="w-12 text-center font-body-md font-bold text-on-surface">{shownQty}</span>
               <button
                 type="button"
-                onClick={() => setQty((q) => Math.min(activeVariant?.quantity || 99, q + 1))}
+                onClick={increaseQty}
+                disabled={!activeVariant || shownQty >= maxQty}
                 className="w-10 h-10 text-on-surface-variant hover:text-on-surface"
                 aria-label="Increase"
               >
                 <Icon name="add" className="!text-base" />
               </button>
             </div>
-            {activeVariant && (
-              <p className={`font-body-md text-xs mt-2 ${inStock ? 'text-on-surface-variant' : 'text-red-400'}`}>
-                {inStock ? `${activeVariant.quantity} in stock` : 'Out of stock'}
+            {qtyError ? (
+              <p className="font-body-md text-xs mt-2 text-red-400 flex items-center gap-1">
+                <Icon name="error" className="!text-sm" filled />
+                {qtyError}
               </p>
+            ) : (
+              activeVariant && (
+                <p className={`font-body-md text-xs mt-2 ${inStock ? 'text-on-surface-variant' : 'text-red-400'}`}>
+                  {inStock ? `${maxQty} in stock` : 'Out of stock'}
+                </p>
+              )
             )}
           </div>
 
@@ -320,11 +365,11 @@ export default function ApparelDetail() {
             </button>
           </div>
 
-          {!activeVariant && (sizes.length > 0 || colors.length > 0) && (
+          {!activeVariant && (showSizes || colors.length > 0) && (
             <p className="font-body-md text-xs text-on-surface-variant">
-              Select {selSize ? '' : opt1Label.toLowerCase()}
-              {!selSize && !selColor && opt2Label && colors.filter((c) => c !== 'Default').length > 0 ? ' and ' : ''}
-              {selColor || !opt2Label ? '' : (colors.filter((c) => c !== 'Default').length > 0 ? opt2Label.toLowerCase() : '')}
+              Select {effSize ? '' : opt1Label.toLowerCase()}
+              {!effSize && !effColor && opt2Label && colors.filter((c) => c !== 'Default').length > 0 ? ' and ' : ''}
+              {effColor || !opt2Label ? '' : (colors.filter((c) => c !== 'Default').length > 0 ? opt2Label.toLowerCase() : '')}
               {' '}to continue.
             </p>
           )}

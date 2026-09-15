@@ -1,6 +1,12 @@
 import { supabase } from '../lib/supabase'
 
 export const CATEGORY_LABEL = {
+  console:     'Gaming Consoles',
+  bundle:      'Gaming Bundles',
+  gaming_accessory: 'Gaming Accessories',
+  ps5_game:    'PS5 Games',
+  ps4_game:    'PS4 Games',
+  xbox_game:   'Xbox Games',
   tshirt:      'T-Shirts',
   pants:       'Pants',
   combo:       'Combos',
@@ -25,6 +31,21 @@ export const GENDER_LABEL = {
   boys:   'Boys',
   girls:  'Girls',
   unisex: 'Unisex',
+}
+
+// Single-SKU products (a console, a game) carry a synthetic variant size that is
+// an implementation detail, never something to show a customer.
+export const PLACEHOLDER_SIZES = ['Standard', 'Default']
+
+export function isRealSize(size) {
+  return !!size && !PLACEHOLDER_SIZES.includes(size)
+}
+
+// "M · Red", "Red", or "" - whatever of the variant is worth showing.
+export function variantSummary(size, color) {
+  return [isRealSize(size) ? size : '', color && color !== 'Default' ? color : '']
+    .filter(Boolean)
+    .join(' · ')
 }
 
 export function categoryLabel(id) {

@@ -13,6 +13,7 @@ import {
   getOrder,
   updateOrderStatus,
 } from './orderHelpers'
+import { isRealSize } from '../apparels/publicApparelHelpers'
 import Icon from '../components/Icon'
 
 const CONFIRMED_STATUSES = ['confirmed', 'packed', 'shipped', 'delivered']
@@ -187,11 +188,15 @@ export default function AdminOrderDetail() {
                 <div className="flex-1 min-w-0">
                   <p className="font-headline-sm text-body-lg font-bold text-on-surface">{it.name}</p>
                   <p className="font-body-md text-sm text-on-surface-variant">
-                    {it.option1_label || 'Size'}: {it.size}
-                    {it.option2_label && it.color && it.color !== 'Default'
-                      ? ` · ${it.option2_label}: ${it.color}`
-                      : ''}
-                    {' · Qty '}{it.qty}
+                    {[
+                      isRealSize(it.size) ? `${it.option1_label || 'Size'}: ${it.size}` : '',
+                      it.option2_label && it.color && it.color !== 'Default'
+                        ? `${it.option2_label}: ${it.color}`
+                        : '',
+                      `Qty ${it.qty}`,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
                   </p>
                   <p className="font-body-md text-xs text-on-surface-variant mt-0.5">
                     {formatRupees(it.unit_price)} each

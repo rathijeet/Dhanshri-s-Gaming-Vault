@@ -10,6 +10,9 @@ import {
   replaceProductImages,
   replaceProductVariants,
   slugify,
+  uniqueProductSlug,
+  usesVariants,
+  SINGLE_VARIANT_SIZE,
   upsertProduct,
   uploadProductImage,
 } from './apparelHelpers'
@@ -64,6 +67,7 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
   const [form, setForm]               = useState(EMPTY)
   const [images, setImages]           = useState([]) // [{ id, image_url }]
   const [variants, setVariants]       = useState([]) // [{ id, size, color, quantity, sku }]
+  const [stockQty, setStockQty]       = useState('') // single-SKU categories (console, game, TV …)
   const [specs, setSpecs]             = useState([]) // [{ id, label, value, type?, options? }]
   const [submitting, setSubmitting]   = useState(false)
   const [uploading, setUploading]     = useState(false)
@@ -79,6 +83,7 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
       setForm({ ...EMPTY })
       setImages([])
       setVariants([])
+      setStockQty('')
       setSpecs([])
       setLoadedId(null)
       return
@@ -103,6 +108,7 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
         setVariants(vars.map((v) => ({
           id: v.id, size: v.size, color: v.color, quantity: v.quantity, sku: v.sku || '',
         })))
+        setStockQty(String(vars.reduce((n, v) => n + (Number(v.quantity) || 0), 0)))
         setSpecs(loadSpecsForCategory(product.specifications || [], product.category))
         setLoadedId(editing.id)
       } catch (err) {
@@ -220,6 +226,8 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
   const updateVariant = (id, key, val) =>
     setVariants((prev) => prev.map((v) => (v.id === id ? { ...v, [key]: val } : v)))
 
+  const hasVariants = usesVariants(form.category)
+
   const totalStock = useMemo(
     () => variants.reduce((s, v) => s + (Number(v.quantity) || 0), 0),
     [variants],
@@ -258,9 +266,26 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
     if (!isValid || submitting) return
 
     // validate variants
-    const cleanVariants = variants
-      .map((v) => ({ ...v, size: v.size.trim(), color: (v.color || 'Default').trim() }))
-      .filter((v) => v.size.length > 0)
+    // Option-less categories never show the variant table - build its single row here.
+    const cleanVariants = hasVariants
+      ? variants
+          .map((v) => ({ ...v, size: v.size.trim(), color: (v.color || 'Default').trim() }))
+          .filter((v) => v.size.length > 0)
+      : [{ size: SINGLE_VARIANT_SIZE, color: 'Default', quantity: Number(stockQty) || 0, sku: '' }]
+
+    if (cleanVariants.length === 0) {
+      setError('Add at least one variant row — without it the product has no stock and cannot be bought.')
+      return
+    }
+    if (cleanVariants.every((v) => (Number(v.quantity) || 0) <= 0)) {
+      setError(
+        hasVariants
+          ? 'Set a quantity of at least 1 on a variant, otherwise the product shows as out of stock.'
+          : 'Set stock to at least 1, otherwise the product shows as out of stock.'
+      )
+      return
+    }
+
     const seen = new Set()
     for (const v of cleanVariants) {
       const key = `${v.size}__${v.color}`
@@ -278,9 +303,14 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
         .map((s) => ({ label: s.label.trim(), value: String(s.value || '').trim() }))
         .filter((s) => s.label.length > 0 && s.value.length > 0)
 
+      const slug = await uniqueProductSlug(form.slug || form.name, {
+        excludeId: editing?.id,
+        category: form.category,
+      })
+
       const payload = {
         name: form.name.trim(),
-        slug: slugify(form.slug || form.name),
+        slug,
         description: form.description.trim() || null,
         category: form.category,
         gender: form.gender,
@@ -585,7 +615,33 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
               )}
             </Section>
 
-            {/* VARIANTS */}
+            {/* STOCK — option-less categories (console, game, TV …) */}
+            {!hasVariants && (
+              <Section
+                title="Inventory"
+                hint="This product type has no size or colour options — just tell us how many you have."
+              >
+                <div className="max-w-xs">
+                  <Field label="Stock quantity">
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={stockQty}
+                      onChange={(e) => setStockQty(e.target.value)}
+                      placeholder="e.g. 1"
+                      className={INPUT}
+                    />
+                  </Field>
+                  <p className="font-body-md text-xs text-on-surface-variant mt-2">
+                    Customers can never order more than this. Set 0 to show the product as sold out.
+                  </p>
+                </div>
+              </Section>
+            )}
+
+            {/* VARIANTS — clothing-style categories only */}
+            {hasVariants && (
             <Section
               title={`Variants & Inventory (Total stock: ${totalStock})`}
               hint={
@@ -723,6 +779,7 @@ export default function AdminApparelFormModal({ open, editing, onClose, onSaved 
                 </div>
               )}
             </Section>
+            )}
 
             {/* ACTIONS */}
             <div className="flex gap-3 pt-2">

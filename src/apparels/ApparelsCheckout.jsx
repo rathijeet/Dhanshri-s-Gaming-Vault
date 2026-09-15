@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { supabase } from '../lib/supabase'
 import { DELIVERY_FEE, WHATSAPP_NUMBER } from '../config'
-import { formatRupees } from './publicApparelHelpers'
+import { formatRupees, isRealSize, variantSummary } from './publicApparelHelpers'
 import { useCart } from './CartContext'
 
 function generateOrderNumber() {
@@ -101,9 +101,15 @@ export default function ApparelsCheckout() {
           `New order ${order_number} placed on the site.`,
           '',
           ...orderItems.map((i) => {
-            const o1 = i.size ? `${i.option1_label}: ${i.size}` : ''
-            const o2 = i.option2_label && i.color && i.color !== 'Default' ? `, ${i.option2_label}: ${i.color}` : ''
-            return `• ${i.name} (${o1}${o2}) × ${i.qty} = ${formatRupees(i.line_total)}`
+            // Single-SKU items (console, game, accessory) have no options to name -
+            // drop the brackets entirely rather than sending an empty pair.
+            const opts = [
+              isRealSize(i.size) ? `${i.option1_label}: ${i.size}` : '',
+              i.option2_label && i.color && i.color !== 'Default' ? `${i.option2_label}: ${i.color}` : '',
+            ]
+              .filter(Boolean)
+              .join(', ')
+            return `• ${i.name}${opts ? ` (${opts})` : ''} × ${i.qty} = ${formatRupees(i.line_total)}`
           }),
           '',
           `Subtotal: ${formatRupees(subtotal)}`,
@@ -271,7 +277,7 @@ export default function ApparelsCheckout() {
                   <div className="flex-1 min-w-0">
                     <p className="font-body-md text-sm text-on-surface line-clamp-1">{it.name}</p>
                     <p className="font-body-md text-xs text-on-surface-variant">
-                      {it.size}{it.color && it.color !== 'Default' ? ` · ${it.color}` : ''} × {it.qty}
+                      {[variantSummary(it.size, it.color), `× ${it.qty}`].filter(Boolean).join(' ')}
                     </p>
                   </div>
                   <p className="font-display-lg text-sm font-bold text-primary-fixed">

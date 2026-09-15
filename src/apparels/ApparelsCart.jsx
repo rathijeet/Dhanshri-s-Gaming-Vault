@@ -1,12 +1,14 @@
+import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { DELIVERY_FEE } from '../config'
-import { formatRupees } from './publicApparelHelpers'
+import { formatRupees, isRealSize } from './publicApparelHelpers'
 import { useCart } from './CartContext'
 
 export default function ApparelsCart() {
   const { items, updateQty, removeItem, subtotal, count } = useCart()
   const navigate = useNavigate()
+  const [stockErrors, setStockErrors] = useState({})
 
   const delivery = subtotal > 0 ? DELIVERY_FEE : 0
   const total    = subtotal + delivery
@@ -47,8 +49,20 @@ export default function ApparelsCart() {
             <CartLine
               key={it.variant_id}
               item={it}
-              onIncrease={() => updateQty(it.variant_id, Math.min(it.stock ?? 99, it.qty + 1))}
-              onDecrease={() => updateQty(it.variant_id, it.qty - 1)}
+              stockError={stockErrors[it.variant_id] || ''}
+              onIncrease={() => {
+                const cap = it.stock ?? Infinity
+                if (it.qty >= cap) {
+                  setStockErrors((e) => ({ ...e, [it.variant_id]: `Only ${cap} available.` }))
+                  return
+                }
+                setStockErrors((e) => ({ ...e, [it.variant_id]: '' }))
+                updateQty(it.variant_id, it.qty + 1)
+              }}
+              onDecrease={() => {
+                setStockErrors((e) => ({ ...e, [it.variant_id]: '' }))
+                updateQty(it.variant_id, it.qty - 1)
+              }}
               onRemove={() => removeItem(it.variant_id)}
             />
           ))}
@@ -82,7 +96,7 @@ export default function ApparelsCart() {
   )
 }
 
-function CartLine({ item, onIncrease, onDecrease, onRemove }) {
+function CartLine({ item, stockError, onIncrease, onDecrease, onRemove }) {
   return (
     <div className="bg-surface-container-high rounded-2xl border border-outline-variant/20 p-4 flex gap-4 items-start">
       <Link to={`/apparels/${item.slug || ''}`} className="w-20 h-24 rounded-lg bg-surface-container overflow-hidden flex-shrink-0">
@@ -103,7 +117,7 @@ function CartLine({ item, onIncrease, onDecrease, onRemove }) {
           {item.name}
         </Link>
         <p className="font-body-md text-sm text-on-surface-variant">
-          {item.option1_label || 'Size'}: {item.size}
+          {isRealSize(item.size) ? `${item.option1_label || 'Size'}: ${item.size}` : ''}
           {item.option2_label && item.color && item.color !== 'Default'
             ? ` · ${item.option2_label}: ${item.color}`
             : ''}
@@ -126,12 +140,19 @@ function CartLine({ item, onIncrease, onDecrease, onRemove }) {
             <button
               type="button"
               onClick={onIncrease}
-              className="w-9 h-9 text-on-surface-variant hover:text-on-surface"
+              disabled={item.stock != null && item.qty >= item.stock}
+              className="w-9 h-9 text-on-surface-variant hover:text-on-surface disabled:opacity-40 disabled:cursor-not-allowed"
               aria-label="Increase"
             >
               <Icon name="add" className="!text-base" />
             </button>
           </div>
+          {stockError && (
+            <p className="font-body-md text-xs text-red-400 flex items-center gap-1 basis-full order-last">
+              <Icon name="error" className="!text-sm" filled />
+              {stockError}
+            </p>
+          )}
           <button
             type="button"
             onClick={onRemove}
