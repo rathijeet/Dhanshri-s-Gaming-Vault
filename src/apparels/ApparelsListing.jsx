@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from '../components/Icon'
 import { categoryLabel, genderLabel, formatRupees, listActiveProducts } from './publicApparelHelpers'
+import StoreBenefits from './StoreBenefits'
 
 const GENDER_ORDER = ['men', 'women', 'boys', 'girls', 'unisex']
 
@@ -63,11 +64,13 @@ export default function ApparelsListing() {
             Everything you need, <span className="text-primary-fixed">delivered from Nagpur.</span>
           </h1>
           <p className="font-body-md text-on-surface-variant max-w-xl">
-            Hand-picked apparel, accessories, toys and more — curated by Dhanshri's Store.
-            Pan-India shipping, cash on delivery available.
+            Consoles, games, controllers and more — curated by Dhanshri's Store.
+            Home delivery across Nagpur, cash on delivery available.
           </p>
         </div>
       </section>
+
+      <StoreBenefits />
 
       {/* FILTERS */}
       <div className="space-y-3 mb-6">

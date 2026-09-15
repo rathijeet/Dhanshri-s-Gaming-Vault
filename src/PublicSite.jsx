@@ -13,6 +13,7 @@ import SupportModal from './components/SupportModal'
 import { POLICIES } from './policies'
 import { AudioEngagementProvider } from './audioEngagement'
 import GameDetailModal from './components/GameDetailModal'
+import StoreLaunchModal from './components/StoreLaunchModal'
 
 export default function PublicSite() {
   const [modalOpen, setModalOpen] = useState(false)
@@ -52,6 +53,7 @@ export default function PublicSite() {
         <BookingModal open={modalOpen} onClose={closeBooking} preselectedConsoleId={preselected} />
         <PolicyModal policy={policyId ? POLICIES[policyId] : null} onClose={closePolicy} />
         <SupportModal open={supportOpen} onClose={closeSupport} />
+        <StoreLaunchModal />
         <GameDetailModal
           game={gameDetail?.game || null}
           platform={gameDetail?.platform || 'ps5'}
