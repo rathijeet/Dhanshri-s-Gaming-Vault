@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import { useShopEnabled } from '../SettingsContext'
+import NewBadge from './NewBadge'
 
 const SECTION_TO_TAB = {
   inventory: 'rent',
@@ -51,7 +52,10 @@ export default function BottomNav({ onBook, onSupport }) {
         }`
         const content = (
           <>
-            <Icon name={it.icon} />
+            <span className="relative inline-flex">
+              <Icon name={it.icon} />
+              {it.id === 'shop' && <NewBadge compact />}
+            </span>
             <span className="font-label-mono text-[10px] uppercase mt-1">{it.label}</span>
           </>
         )

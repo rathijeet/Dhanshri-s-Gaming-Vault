@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import Logo from './Logo'
 import { useShopEnabled } from '../SettingsContext'
+import NewBadge from './NewBadge'
 
 const NAV_LINKS = [
   { href: '#inventory', label: 'Inventory' },
@@ -51,6 +52,7 @@ export default function Header({ onBook }) {
             >
               <Icon name="storefront" className="!text-base" />
               Shop
+              <NewBadge />
             </Link>
           )}
           <button
@@ -92,6 +94,7 @@ export default function Header({ onBook }) {
               >
                 <Icon name="storefront" className="!text-base" />
                 Shop
+                <NewBadge />
               </Link>
             )}
             <button
