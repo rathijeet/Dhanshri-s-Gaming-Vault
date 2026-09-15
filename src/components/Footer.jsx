@@ -1,4 +1,6 @@
+import { INSTAGRAM_HANDLE, INSTAGRAM_URL } from '../config'
 import Icon from './Icon'
+import InstagramIcon from './InstagramIcon'
 import Logo from './Logo'
 
 const POLICY_LINKS = [
@@ -48,7 +50,16 @@ export default function Footer({ onSupport, onOpenPolicy }) {
               </button>
             ))}
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap justify-center md:justify-end gap-4">
+            <a
+              href={INSTAGRAM_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`Follow @${INSTAGRAM_HANDLE} on Instagram`}
+              className="border border-primary-fixed/50 text-primary-fixed px-6 py-2 rounded-lg font-bold flex items-center gap-2 hover:bg-primary-fixed hover:text-on-primary-fixed transition-all"
+            >
+              <InstagramIcon className="w-5 h-5" /> @{INSTAGRAM_HANDLE}
+            </a>
             <button
               onClick={() => onSupport()}
               className="bg-primary-fixed text-on-primary-fixed px-6 py-2 rounded-lg font-bold flex items-center gap-2 hover:scale-95 transition-all"

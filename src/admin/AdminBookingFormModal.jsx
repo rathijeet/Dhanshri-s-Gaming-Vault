@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
-import { CONSOLES, DAY_PRESETS, DELIVERY_FEE, MAX_RENTAL_DAYS } from '../config'
+import { DAY_PRESETS, DELIVERY_FEE, MAX_RENTAL_DAYS } from '../config'
 import { supabase } from '../lib/supabase'
 import Icon from '../components/Icon'
+import { RENTAL_OPTIONS } from './bookingHelpers'
 
 const pad = (n) => String(n).padStart(2, '0')
 const toLocalInput = (d) =>
@@ -17,6 +18,8 @@ const EMPTY = {
   days: 1,
   startDateTime: '',
   extraController: false,
+  useCustomAmount: false,
+  customAmount: '',
   status: 'confirmed',
   notes: '',
 }
@@ -47,9 +50,10 @@ export default function AdminBookingFormModal({ open, onClose, onSaved }) {
   }, [open, onClose])
 
   const selectedConsole = useMemo(
-    () => CONSOLES.find((c) => c.id === form.consoleId),
+    () => RENTAL_OPTIONS.find((c) => c.id === form.consoleId),
     [form.consoleId]
   )
+  const controllerOnly = !!selectedConsole?.controllerOnly
 
   const endDate = useMemo(() => {
     if (!form.startDateTime) return null
@@ -63,11 +67,18 @@ export default function AdminBookingFormModal({ open, onClose, onSaved }) {
   const consoleSubtotal = selectedConsole ? selectedConsole.price * form.days : 0
   const controllerSubtotal =
     form.extraController && selectedConsole ? controllerPerDay * form.days : 0
-  const total = consoleSubtotal + controllerSubtotal + (consoleSubtotal ? DELIVERY_FEE : 0)
+  const calculatedTotal = consoleSubtotal + controllerSubtotal + (consoleSubtotal ? DELIVERY_FEE : 0)
+
+  const customAmount = Number(form.customAmount)
+  const customAmountValid =
+    form.customAmount.trim() !== '' && Number.isFinite(customAmount) && customAmount >= 0
+  const total = form.useCustomAmount && customAmountValid ? customAmount : calculatedTotal
+  const amountDiff = total - calculatedTotal
 
   const phoneDigits = form.phone.replace(/\D/g, '')
   const isValid =
     !!selectedConsole &&
+    (!form.useCustomAmount || customAmountValid) &&
     form.customer_name.trim().length >= 2 &&
     phoneDigits.length === 10 &&
     form.address.trim().length >= 4 &&
@@ -153,7 +164,7 @@ export default function AdminBookingFormModal({ open, onClose, onSaved }) {
 
             <div>
               <label className="font-label-mono text-label-mono text-on-surface-variant uppercase block mb-2">
-                Console
+                Rental Item
               </label>
               <select
                 value={form.consoleId}
@@ -161,9 +172,9 @@ export default function AdminBookingFormModal({ open, onClose, onSaved }) {
                 className="w-full bg-surface-container border border-outline-variant/30 rounded-lg px-4 py-3 font-body-md text-on-surface focus:border-primary-fixed focus:outline-none [color-scheme:dark]"
               >
                 <option value="">Pick a console…</option>
-                {CONSOLES.map((c) => (
+                {RENTAL_OPTIONS.map((c) => (
                   <option key={c.id} value={c.id}>
-                    {c.name} · ₹{c.price}/day
+                    {c.optionLabel}
                   </option>
                 ))}
               </select>
@@ -217,7 +228,7 @@ export default function AdminBookingFormModal({ open, onClose, onSaved }) {
                 className="w-5 h-5 accent-primary-fixed"
               />
               <span className="font-body-md text-on-surface">
-                Extra controller
+                {controllerOnly ? 'Second controller' : 'Extra controller'}
                 {selectedConsole ? ` (+₹${controllerPerDay}/day)` : ''}
               </span>
             </label>
@@ -294,12 +305,15 @@ export default function AdminBookingFormModal({ open, onClose, onSaved }) {
 
             <div className="bg-surface-container rounded-xl p-4 border border-outline-variant/20">
               <div className="flex justify-between font-body-md text-on-surface-variant">
-                <span>Console × {form.days} day{form.days > 1 ? 's' : ''}</span>
+                <span>
+                  {selectedConsole ? selectedConsole.name : 'Console'} × {form.days} day
+                  {form.days > 1 ? 's' : ''}
+                </span>
                 <span>₹{consoleSubtotal}</span>
               </div>
               {form.extraController && selectedConsole && (
                 <div className="flex justify-between font-body-md text-on-surface-variant mt-1">
-                  <span>Extra controller</span>
+                  <span>{controllerOnly ? 'Second controller' : 'Extra controller'}</span>
                   <span>₹{controllerSubtotal}</span>
                 </div>
               )}
@@ -308,7 +322,70 @@ export default function AdminBookingFormModal({ open, onClose, onSaved }) {
                 <span>₹{consoleSubtotal ? DELIVERY_FEE : 0}</span>
               </div>
               <div className="flex justify-between font-headline-sm font-bold text-on-surface mt-2 pt-2 border-t border-outline-variant/20">
-                <span>Total</span>
+                <span>Calculated total</span>
+                <span className={form.useCustomAmount ? 'text-on-surface-variant line-through' : 'text-primary-fixed'}>
+                  ₹{calculatedTotal}
+                </span>
+              </div>
+
+              <label className="flex items-center gap-3 cursor-pointer mt-4 pt-4 border-t border-outline-variant/20">
+                <input
+                  type="checkbox"
+                  checked={form.useCustomAmount}
+                  onChange={(e) =>
+                    setForm((f) => ({
+                      ...f,
+                      useCustomAmount: e.target.checked,
+                      customAmount: e.target.checked ? String(calculatedTotal) : '',
+                    }))
+                  }
+                  className="w-5 h-5 accent-primary-fixed"
+                />
+                <span className="font-body-md text-on-surface">
+                  Custom amount (enter what the customer actually paid)
+                </span>
+              </label>
+
+              {form.useCustomAmount && (
+                <div className="mt-3">
+                  <label className="font-label-mono text-label-mono text-on-surface-variant uppercase block mb-2">
+                    Amount Received
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 font-headline-sm font-bold text-on-surface-variant">
+                      ₹
+                    </span>
+                    <input
+                      type="number"
+                      inputMode="decimal"
+                      min="0"
+                      step="1"
+                      value={form.customAmount}
+                      onChange={set('customAmount')}
+                      placeholder={String(calculatedTotal)}
+                      className="w-full bg-surface-container-high border border-outline-variant/30 rounded-lg pl-9 pr-4 py-3 font-headline-sm font-bold text-on-surface focus:border-primary-fixed focus:outline-none"
+                    />
+                  </div>
+                  {customAmountValid ? (
+                    amountDiff !== 0 && (
+                      <p className="font-body-md text-sm text-on-surface-variant mt-2">
+                        {amountDiff < 0 ? 'Discount of ' : 'Extra of '}
+                        <span className={amountDiff < 0 ? 'text-error font-bold' : 'text-primary-fixed font-bold'}>
+                          ₹{Math.abs(amountDiff)}
+                        </span>{' '}
+                        vs the calculated total.
+                      </p>
+                    )
+                  ) : (
+                    <p className="font-body-md text-sm text-error mt-2">
+                      Enter a valid amount (0 or more) to save.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-between font-headline-sm font-bold text-on-surface mt-4 pt-3 border-t-2 border-primary-fixed/30">
+                <span>Amount Payable</span>
                 <span className="text-primary-fixed">₹{total}</span>
               </div>
             </div>

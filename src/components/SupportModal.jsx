@@ -1,6 +1,15 @@
 import { useEffect } from 'react'
-import { ADDRESS, BUSINESS_NAME, MAPS_URL, OWNER_NAME, WHATSAPP_NUMBER } from '../config'
+import {
+  ADDRESS,
+  BUSINESS_NAME,
+  INSTAGRAM_HANDLE,
+  INSTAGRAM_URL,
+  MAPS_URL,
+  OWNER_NAME,
+  WHATSAPP_NUMBER,
+} from '../config'
 import Icon from './Icon'
+import InstagramIcon from './InstagramIcon'
 
 const PHONE_DISPLAY = `+91 ${WHATSAPP_NUMBER.slice(2, 7)} ${WHATSAPP_NUMBER.slice(7)}`
 const TEL_HREF = `tel:+${WHATSAPP_NUMBER}`
@@ -95,6 +104,26 @@ export default function SupportModal({ open, onClose }) {
               <p className="font-body-md text-body-lg text-on-surface font-bold">{PHONE_DISPLAY}</p>
               <p className="font-label-mono text-label-mono text-primary-fixed uppercase mt-2 flex items-center gap-1 group-hover:gap-2 transition-all">
                 Tap to Call <Icon name="arrow_forward" className="!text-base" />
+              </p>
+            </div>
+          </a>
+
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex gap-4 p-5 rounded-2xl border border-outline-variant/20 bg-surface-container hover:border-primary-fixed/50 transition-colors group"
+          >
+            <InstagramIcon className="text-primary-fixed w-8 h-8 flex-shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-label-mono text-label-mono text-on-surface-variant uppercase mb-2">
+                Instagram
+              </p>
+              <p className="font-body-md text-body-lg text-on-surface font-bold break-all">
+                @{INSTAGRAM_HANDLE}
+              </p>
+              <p className="font-label-mono text-label-mono text-primary-fixed uppercase mt-2 flex items-center gap-1 group-hover:gap-2 transition-all">
+                Follow Us <Icon name="arrow_forward" className="!text-base" />
               </p>
             </div>
           </a>

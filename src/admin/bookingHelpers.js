@@ -1,3 +1,27 @@
+import { CONSOLES } from '../config'
+
+// Admin-only rental options. Walk-in customers sometimes take just a controller,
+// so each console also appears as a controller-only line at its existing
+// extra-controller rate. Kept out of the public CONSOLES list on purpose.
+export const RENTAL_OPTIONS = [
+  ...CONSOLES.map((c) => ({
+    id: c.id,
+    name: c.name,
+    price: c.price,
+    extraControllerPrice: c.extraControllerPrice,
+    controllerOnly: false,
+    optionLabel: `${c.name} · ₹${c.price}/day`,
+  })),
+  ...CONSOLES.map((c) => ({
+    id: `${c.id}-controller`,
+    name: `${c.name} Controller Only`,
+    price: c.extraControllerPrice,
+    extraControllerPrice: c.extraControllerPrice,
+    controllerOnly: true,
+    optionLabel: `${c.name} — Controller only · ₹${c.extraControllerPrice}/day`,
+  })),
+]
+
 export const STATUS_TABS = [
   { id: 'pending', label: 'Pending' },
   { id: 'confirmed', label: 'Confirmed' },
