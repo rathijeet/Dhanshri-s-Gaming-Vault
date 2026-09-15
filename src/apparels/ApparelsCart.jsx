@@ -87,7 +87,7 @@ export default function ApparelsCart() {
               Proceed to checkout
             </button>
             <p className="font-body-md text-xs text-on-surface-variant text-center">
-              Cash on delivery available · Pan-India shipping
+              Cash on delivery · Home delivery across Nagpur
             </p>
           </div>
         </aside>

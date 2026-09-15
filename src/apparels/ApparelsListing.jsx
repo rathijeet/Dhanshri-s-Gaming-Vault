@@ -65,7 +65,7 @@ export default function ApparelsListing() {
           </h1>
           <p className="font-body-md text-on-surface-variant max-w-xl">
             Consoles, games, controllers and more — curated by Dhanshri's Store.
-            Home delivery across Nagpur, cash on delivery available.
+            Home delivery across Nagpur, booked on WhatsApp, cash on delivery.
           </p>
         </div>
       </section>

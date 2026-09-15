@@ -12,8 +12,8 @@ const BENEFITS = [
   {
     id: 'pay',
     icon: 'payments',
-    title: 'Pay on delivery',
-    body: 'Cash or UPI when it reaches your door — nothing upfront.',
+    title: 'Cash on delivery',
+    body: 'Pay when it reaches your door — nothing upfront.',
   },
   {
     id: 'genuine',

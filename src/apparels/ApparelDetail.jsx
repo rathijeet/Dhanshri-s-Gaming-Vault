@@ -376,9 +376,9 @@ export default function ApparelDetail() {
 
           {/* TRUST */}
           <div className="grid grid-cols-3 gap-2 pt-4 border-t border-outline-variant/20">
-            <Perk icon="local_shipping" label="Ships in 3-5 days" />
+            <Perk icon="local_shipping" label="Nagpur home delivery" />
             <Perk icon="payments"       label="Cash on delivery" />
-            <Perk icon="verified"       label="Made in India" />
+            <Perk icon="verified"       label="Genuine products" />
           </div>
         </div>
       </div>

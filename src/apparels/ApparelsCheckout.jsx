@@ -94,8 +94,8 @@ export default function ApparelsCheckout() {
       const { error: err } = await supabase.from('apparel_orders').insert(payload)
       if (err) throw err
 
-      // open WhatsApp with confirmation message
-      if (form.payment_method === 'whatsapp' || form.payment_method === 'upi') {
+      // WhatsApp is the only checkout path, so the handoff always runs
+      {
         const lines = [
           `Hi Dhanshri's Store,`,
           `New order ${order_number} placed on the site.`,
@@ -185,7 +185,7 @@ export default function ApparelsCheckout() {
             </div>
           </Section>
 
-          <Section title="Shipping address">
+          <Section title="Delivery address">
             <Field label="Address Line 1 *">
               <input
                 type="text"
@@ -224,32 +224,31 @@ export default function ApparelsCheckout() {
             </div>
           </Section>
 
-          <Section title="Payment method">
-            <div className="grid sm:grid-cols-3 gap-2">
-              <PaymentChoice
-                id="cod"
-                icon="payments"
-                label="Cash on Delivery"
-                hint="Pay when the order arrives"
-                active={form.payment_method === 'cod'}
-                onSelect={() => setForm((f) => ({ ...f, payment_method: 'cod' }))}
-              />
-              <PaymentChoice
-                id="upi"
-                icon="qr_code_2"
-                label="UPI / Bank"
-                hint="Confirm via WhatsApp"
-                active={form.payment_method === 'upi'}
-                onSelect={() => setForm((f) => ({ ...f, payment_method: 'upi' }))}
-              />
-              <PaymentChoice
-                id="whatsapp"
-                icon="chat"
-                label="WhatsApp"
-                hint="We'll text you to confirm"
-                active={form.payment_method === 'whatsapp'}
-                onSelect={() => setForm((f) => ({ ...f, payment_method: 'whatsapp' }))}
-              />
+          <Section title="Booking & payment">
+            <div className="space-y-2">
+              <div className="flex gap-4 p-4 rounded-2xl border border-primary-fixed/30 bg-primary-fixed/[0.07]">
+                <Icon name="chat" className="text-primary-fixed !text-3xl flex-shrink-0" filled />
+                <div className="min-w-0">
+                  <p className="font-headline-sm text-body-lg font-bold text-on-surface">
+                    Booked on WhatsApp
+                  </p>
+                  <p className="font-body-md text-body-md text-on-surface-variant mt-1 leading-relaxed">
+                    Placing the order opens WhatsApp with your details ready to send. We reply to
+                    confirm stock and the delivery slot.
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4 p-4 rounded-2xl border border-outline-variant/20 bg-surface-container">
+                <Icon name="payments" className="text-primary-fixed !text-3xl flex-shrink-0" filled />
+                <div className="min-w-0">
+                  <p className="font-headline-sm text-body-lg font-bold text-on-surface">
+                    Cash on delivery
+                  </p>
+                  <p className="font-body-md text-body-md text-on-surface-variant mt-1 leading-relaxed">
+                    Pay when the order reaches you — nothing upfront.
+                  </p>
+                </div>
+              </div>
             </div>
           </Section>
 
@@ -328,26 +327,6 @@ function Field({ label, children }) {
       <label className="font-label-mono text-label-mono text-on-surface-variant uppercase block mb-2">{label}</label>
       {children}
     </div>
-  )
-}
-
-function PaymentChoice({ icon, label, hint, active, onSelect }) {
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      className={`p-3 rounded-xl border-2 transition-all text-left flex items-start gap-2 ${
-        active
-          ? 'border-primary-fixed bg-primary-fixed/10'
-          : 'border-outline-variant/30 bg-surface-container hover:border-primary-fixed/50'
-      }`}
-    >
-      <Icon name={icon} className={`!text-xl ${active ? 'text-primary-fixed' : 'text-on-surface-variant'}`} />
-      <div>
-        <p className={`font-body-md font-bold text-sm ${active ? 'text-primary-fixed' : 'text-on-surface'}`}>{label}</p>
-        <p className="font-body-md text-xs text-on-surface-variant">{hint}</p>
-      </div>
-    </button>
   )
 }
 
