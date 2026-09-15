@@ -1,6 +1,8 @@
 export const BUSINESS_NAME = "Dhanshri's Gaming Vault"
 export const OWNER_NAME = 'Yash Agre'
 export const WHATSAPP_NUMBER = '919370493240'
+export const INSTAGRAM_HANDLE = 'dhanashris_gaming_vault'
+export const INSTAGRAM_URL = `https://www.instagram.com/${INSTAGRAM_HANDLE}`
 export const DELIVERY_FEE = 30
 export const SERVICE_CITY = 'Nagpur'
 
