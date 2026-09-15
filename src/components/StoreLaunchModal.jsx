@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useShopEnabled } from '../SettingsContext'
-import { formatRupees, listActiveProducts } from '../apparels/publicApparelHelpers'
+import {
+  formatRupees,
+  latestProductTimestamp,
+  listActiveProducts,
+} from '../apparels/publicApparelHelpers'
 import Icon from './Icon'
 
 // Bump the suffix to re-announce to everyone (e.g. for the next big launch).
@@ -30,20 +34,33 @@ const FALLBACK_SLIDES = [
 ]
 
 // Still inside the quiet period for whatever the visitor did last time?
-function isSnoozed() {
+function readRecord() {
+  try {
+    return JSON.parse(localStorage.getItem(SEEN_KEY) || '{}') || {}
+  } catch {
+    return {} // blocked storage or bad JSON - treat as never seen
+  }
+}
+
+// Has a product gone live since the visitor was last shown the popup?
+function hasNewStock(latest, record) {
+  if (!latest) return false
+  if (!record.lastProductAt) return true
+  return new Date(latest) > new Date(record.lastProductAt)
+}
+
+function isSnoozed(record) {
   try {
     // The tab flag only stops a reload re-opening it moments later; the timed
     // cooldown below is what actually decides when it comes back.
     const shownAt = Number(sessionStorage.getItem(SESSION_KEY) || 0)
     if (shownAt && Date.now() - shownAt < 15 * MINUTE) return true
-    const raw = localStorage.getItem(SEEN_KEY)
-    if (!raw) return false
-    const { action, at } = JSON.parse(raw)
+    const { action, at } = record
     const quietFor = COOLDOWN[action]
     if (!quietFor || !at) return false
     return Date.now() - at < quietFor
   } catch {
-    return false // private window / blocked storage / bad JSON - just show it
+    return false // private window / blocked storage - just show it
   }
 }
 
@@ -57,9 +74,9 @@ function markShownThisSession() {
 
 // Only called when the visitor actually acts. Leaving without a choice records
 // nothing, so the announcement gets another chance on their next visit.
-function recordChoice(action) {
+function recordChoice(action, lastProductAt) {
   try {
-    localStorage.setItem(SEEN_KEY, JSON.stringify({ action, at: Date.now() }))
+    localStorage.setItem(SEEN_KEY, JSON.stringify({ action, at: Date.now(), lastProductAt }))
   } catch {
     /* nothing to do */
   }
@@ -73,8 +90,10 @@ export default function StoreLaunchModal() {
   const [slides, setSlides] = useState(FALLBACK_SLIDES)
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [isRestock, setIsRestock] = useState(false)
   const timerRef = useRef(null)
   const resumeRef = useRef(null)
+  const latestRef = useRef(null) // newest product this visitor has now been shown
 
   // Only a deliberate tap on a dot pauses, and only briefly - hovering must not
   // stop the rotation, or a centred popup never advances at all.
@@ -89,24 +108,47 @@ export default function StoreLaunchModal() {
 
   const close = useCallback(() => {
     setOpen(false)
-    recordChoice('dismissed')
+    recordChoice('dismissed', latestRef.current)
   }, [])
 
   const goShop = useCallback(() => {
-    recordChoice('shopped')
+    recordChoice('shopped', latestRef.current)
     setOpen(false)
     navigate('/apparels')
   }, [navigate])
 
-  // Announce on a return visit once the quiet period has passed, and only after
-  // the hero has had a moment on screen.
+  // Announce once the quiet period has passed - or straight away when a product
+  // has gone live since this visitor was last told, so new stock always gets seen.
   useEffect(() => {
-    if (!shopEnabled || isSnoozed()) return
-    const t = setTimeout(() => {
-      setOpen(true)
-      markShownThisSession()
-    }, 1400)
-    return () => clearTimeout(t)
+    if (!shopEnabled) return
+    let cancelled = false
+    let timer
+
+    ;(async () => {
+      let latest = null
+      try {
+        latest = await latestProductTimestamp()
+      } catch {
+        /* offline or query failed - fall back to the plain cooldown */
+      }
+      if (cancelled) return
+
+      const record = readRecord()
+      const restock = hasNewStock(latest, record)
+      if (isSnoozed(record) && !restock) return
+
+      latestRef.current = latest
+      setIsRestock(restock && !!record.at) // only "new arrivals" for a repeat viewer
+      timer = setTimeout(() => {
+        setOpen(true)
+        markShownThisSession()
+      }, 1400)
+    })()
+
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [shopEnabled])
 
   // Real products make the announcement concrete; fallback slides cover an empty catalog.
@@ -181,13 +223,16 @@ export default function StoreLaunchModal() {
 
         <div className="px-6 pt-7 pb-4 text-center">
           <span className="inline-flex items-center gap-1.5 bg-primary-fixed/15 text-primary-fixed font-label-mono text-label-mono uppercase px-3 py-1 rounded-full">
-            <Icon name="celebration" className="!text-sm" filled /> Now live
+            <Icon name={isRestock ? 'new_releases' : 'celebration'} className="!text-sm" filled />
+            {isRestock ? 'Just added' : 'Now live'}
           </span>
           <h2 className="font-display-lg text-headline-sm text-on-surface mt-3">
-            Dhanshri&apos;s Store is open
+            {isRestock ? 'New in the store' : "Dhanshri's Store is open"}
           </h2>
           <p className="font-body-md text-body-md text-on-surface-variant mt-1.5">
-            Buy consoles, games, controllers and bundles — delivered across Nagpur.
+            {isRestock
+              ? 'Fresh stock just landed — take a look before it goes.'
+              : 'Buy consoles, games, controllers and bundles — delivered across Nagpur.'}
           </p>
         </div>
 

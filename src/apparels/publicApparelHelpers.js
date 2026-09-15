@@ -73,6 +73,19 @@ export async function listActiveProducts() {
   return data || []
 }
 
+// Just the newest active product's timestamp - lets the launch popup notice new
+// stock without pulling the whole catalog on every homepage visit.
+export async function latestProductTimestamp() {
+  const { data, error } = await supabase
+    .from('apparel_products')
+    .select('created_at')
+    .eq('status', 'active')
+    .order('created_at', { ascending: false })
+    .limit(1)
+  if (error) throw error
+  return data?.[0]?.created_at || null
+}
+
 export async function getProductBySlug(slug) {
   const { data: product, error } = await supabase
     .from('apparel_products')
