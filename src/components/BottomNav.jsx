@@ -4,9 +4,10 @@ import Icon from './Icon'
 import { useShopEnabled } from '../SettingsContext'
 import NewBadge from './NewBadge'
 
+// Only sections that still have a tab belong here — mapping to a tab that no
+// longer exists would clear the highlight as you scrolled past it.
 const SECTION_TO_TAB = {
   inventory: 'rent',
-  how: 'process',
   trust: 'verify',
 }
 
@@ -35,10 +36,13 @@ export default function BottomNav({ onBook, onSupport }) {
     return () => observer.disconnect()
   }, [])
 
+  // Six tabs is the practical ceiling at 360px wide, which is why Process and
+  // Verify — both just anchors to sections you reach by scrolling — give way
+  // here rather than Build, which is a destination of its own.
   const items = [
     { id: 'rent', icon: 'sports_esports', label: 'Rent', onClick: () => onBook() },
+    { id: 'build', icon: 'memory', label: 'Build', to: '/build' },
     ...(shopEnabled ? [{ id: 'shop', icon: 'storefront', label: 'Shop', to: '/apparels' }] : []),
-    { id: 'process', icon: 'sync_alt', label: 'Process', href: '#how' },
     { id: 'verify', icon: 'verified_user', label: 'Verify', href: '#trust' },
     { id: 'support', icon: 'support_agent', label: 'Support', onClick: () => onSupport() },
   ]
@@ -47,14 +51,14 @@ export default function BottomNav({ onBook, onSupport }) {
     <nav className="md:hidden flex justify-around items-center px-4 py-3 fixed bottom-0 w-full z-50 rounded-t-xl bg-surface-container-high border-t border-primary-fixed/30 shadow-[0_-8px_24px_rgba(0,227,139,0.15)]">
       {items.map((it) => {
         const isActive = activeTab === it.id
-        const className = `flex flex-col items-center justify-center py-1 px-3 transition-colors ${
+        const className = `flex flex-col items-center justify-center py-1 px-2 transition-colors ${
           isActive ? 'text-primary-fixed bg-surface-variant/50 rounded-lg' : 'text-on-surface-variant'
         }`
         const content = (
           <>
             <span className="relative inline-flex">
               <Icon name={it.icon} />
-              {it.id === 'shop' && <NewBadge compact />}
+              {(it.id === 'shop' || it.id === 'build') && <NewBadge compact />}
             </span>
             <span className="font-label-mono text-[10px] uppercase mt-1">{it.label}</span>
           </>

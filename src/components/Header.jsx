@@ -94,6 +94,15 @@ export default function Header({ onBook }) {
                 {l.label}
               </a>
             ))}
+            <Link
+              to="/build"
+              onClick={close}
+              className="py-4 font-body-md text-body-md text-on-surface hover:text-primary-fixed border-b border-outline-variant/10 flex items-center gap-2"
+            >
+              <Icon name="memory" className="!text-base" />
+              Build a PC
+              <NewBadge />
+            </Link>
             {shopEnabled && (
               <Link
                 to="/apparels"
