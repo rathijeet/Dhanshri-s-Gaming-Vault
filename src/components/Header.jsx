@@ -45,6 +45,14 @@ export default function Header({ onBook }) {
               {l.label}
             </a>
           ))}
+          <Link
+            to="/build"
+            className="text-on-surface-variant hover:text-primary-fixed transition-colors font-body-md text-body-md flex items-center gap-1"
+          >
+            <Icon name="memory" className="!text-base" />
+            Build a PC
+            <NewBadge />
+          </Link>
           {shopEnabled && (
             <Link
               to="/apparels"

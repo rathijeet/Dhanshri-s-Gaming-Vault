@@ -6,6 +6,7 @@ import AdminDashboard from './admin/AdminDashboard'
 import AdminBookings from './admin/AdminBookings'
 import AdminExpenses from './admin/AdminExpenses'
 import AdminApparels from './admin/AdminApparels'
+import AdminComponents from './admin/AdminComponents'
 import AdminOrders from './admin/AdminOrders'
 import AdminOrderDetail from './admin/AdminOrderDetail'
 import AdminSettings from './admin/AdminSettings'
@@ -16,6 +17,7 @@ import ApparelDetail from './apparels/ApparelDetail'
 import ApparelsCart from './apparels/ApparelsCart'
 import ApparelsCheckout from './apparels/ApparelsCheckout'
 import ApparelsOrderSuccess from './apparels/ApparelsOrderSuccess'
+import SystemBuilderPage from './systems/SystemBuilderPage'
 import { SettingsProvider } from './SettingsContext'
 
 export default function App() {
@@ -24,6 +26,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<PublicSite />} />
+        <Route path="/build" element={<SystemBuilderPage />} />
         <Route path="/apparels" element={<ApparelsLayout />}>
           <Route index element={<ApparelsListing />} />
           <Route path="cart" element={<ApparelsCart />} />
@@ -43,6 +46,7 @@ export default function App() {
           <Route index element={<AdminDashboard />} />
           <Route path="bookings" element={<AdminBookings />} />
           <Route path="apparels" element={<AdminApparels />} />
+          <Route path="components" element={<AdminComponents />} />
           <Route path="orders" element={<AdminOrders />} />
           <Route path="orders/:id" element={<AdminOrderDetail />} />
           <Route path="expenses" element={<AdminExpenses />} />

@@ -9,6 +9,7 @@ const TABS = [
   { to: '/admin', label: 'Dashboard', icon: 'dashboard', end: true },
   { to: '/admin/bookings', label: 'Bookings', icon: 'event' },
   { to: '/admin/apparels', label: 'Products', icon: 'inventory_2' },
+  { to: '/admin/components', label: 'Components', icon: 'memory' },
   { to: '/admin/orders', label: 'Orders', icon: 'receipt_long' },
   { to: '/admin/expenses', label: 'Expenses', icon: 'savings' },
   { to: '/admin/settings', label: 'Settings', icon: 'tune' },
