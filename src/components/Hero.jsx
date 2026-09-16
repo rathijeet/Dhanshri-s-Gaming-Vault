@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import Icon from './Icon'
 
 export default function Hero({ onBook }) {
@@ -36,6 +37,24 @@ export default function Hero({ onBook }) {
               View Console List
             </a>
           </div>
+
+          <Link
+            to="/build"
+            className="mt-6 inline-flex items-center gap-3 bg-surface-container-high border border-primary-fixed/25 rounded-xl px-4 py-3 hover:border-primary-fixed/60 transition-colors group"
+          >
+            <span className="w-9 h-9 rounded-lg bg-primary-fixed/10 text-primary-fixed flex items-center justify-center flex-shrink-0">
+              <Icon name="memory" className="!text-xl" />
+            </span>
+            <span className="text-left">
+              <span className="font-headline-sm text-sm font-bold text-on-surface block">
+                Design your own PC or AI lab
+              </span>
+              <span className="font-body-md text-xs text-on-surface-variant">
+                Tell us what you need — we build and price it in 3D
+              </span>
+            </span>
+            <Icon name="chevron_right" className="!text-xl text-on-surface-variant group-hover:text-primary-fixed transition-colors" />
+          </Link>
         </div>
 
         <div className="relative mt-8 lg:mt-0 mx-auto w-3/5 max-w-xs lg:w-full lg:max-w-none">
