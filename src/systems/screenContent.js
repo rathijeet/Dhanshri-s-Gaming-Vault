@@ -8,11 +8,17 @@
 // Signature: draw(ctx, w, h, t, rgb) where t is elapsed seconds and rgb is the
 // user's chosen lighting colour as a CSS string.
 
+// `video` is the path, without extension, to real footage of the machine
+// doing the thing — a game actually running, a timeline actually being
+// scrubbed. Drop `<name>.mp4` (or .webm) in public/screens/ and it plays; leave it out and the hand-drawn
+// scene below stands in, so the viewer never breaks on a missing file.
+// See public/screens/README.md before adding anything: this is a commercial
+// site, so the footage has to be ours or licensed for it.
 export const SCREEN_SCENES = [
-  { id: 'gaming',  label: 'Gaming',        icon: 'sports_esports' },
-  { id: 'creator', label: 'Video editing', icon: 'movie_edit' },
-  { id: 'ai',      label: 'AI / training', icon: 'neurology' },
-  { id: 'office',  label: 'Office',        icon: 'business_center' },
+  { id: 'gaming',  label: 'Gaming',        icon: 'sports_esports',  video: '/screens/gaming' },
+  { id: 'creator', label: 'Video editing', icon: 'movie_edit',      video: '/screens/creator' },
+  { id: 'ai',      label: 'AI / training', icon: 'neurology',       video: '/screens/ai' },
+  { id: 'office',  label: 'Office',        icon: 'business_center', video: '/screens/office' },
 ]
 
 const mono = (px) => `${px}px ui-monospace, SFMono-Regular, Menlo, monospace`

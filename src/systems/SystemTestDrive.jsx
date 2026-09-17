@@ -61,8 +61,22 @@ function narrate(sceneId, build) {
   }
 }
 
-export default function SystemTestDrive({ open, onClose, build, rgbColor, result, initialScene = 'gaming' }) {
+// A cabinet is about as big as a 24" panel, so no single frame can make both
+// large. Rather than compromise either, the customer picks the shot. A lab gets
+// a middle one: standing between the rows, which is the thing a lab is for.
+const ROOM_VIEWS = [
+  { id: 'monitor', label: 'Whole setup', icon: 'desk' },
+  { id: 'screen',  label: 'Screen',      icon: 'fullscreen' },
+]
+const LAB_VIEWS = [
+  { id: 'monitor', label: 'Whole lab', icon: 'meeting_room' },
+  { id: 'station', label: 'A desk',    icon: 'desk' },
+  { id: 'screen',  label: 'Screen',    icon: 'fullscreen' },
+]
+
+export default function SystemTestDrive({ open, onClose, build, rgbColor, result, seats = 1, initialScene = 'gaming' }) {
   const [idx, setIdx] = useState(() => Math.max(0, SCREEN_SCENES.findIndex((s) => s.id === initialScene)))
+  const [view, setView] = useState('monitor')
   const swipe = useRef({ x: 0, active: false })
 
   const go = (delta) =>
@@ -87,6 +101,10 @@ export default function SystemTestDrive({ open, onClose, build, rgbColor, result
 
   const scene = SCREEN_SCENES[idx]
   const copy = narrate(scene.id, build)
+  // Derived, not stored: a lab-only view must not survive a switch back to a
+  // single system, and deriving it beats an effect that resets state.
+  const views = seats > 1 ? LAB_VIEWS : ROOM_VIEWS
+  const activeView = views.some((v) => v.id === view) ? view : 'monitor'
 
   // Swipe lives on the caption bar, not the canvas — dragging the canvas is how
   // you orbit the machine, and one gesture cannot mean two things.
@@ -130,9 +148,9 @@ export default function SystemTestDrive({ open, onClose, build, rgbColor, result
             <SystemViewer3D
               build={build}
               rgbColor={rgbColor}
-              seats={1}
+              seats={seats}
               screenScene={scene.id}
-              focus="monitor"
+              focus={activeView}
             />
           </Suspense>
         </ViewerBoundary>
@@ -154,8 +172,26 @@ export default function SystemTestDrive({ open, onClose, build, rgbColor, result
           <Icon name="chevron_right" />
         </button>
 
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 flex gap-1 bg-background/80 backdrop-blur border border-outline-variant/30 rounded-xl p-1">
+          {views.map((v) => (
+            <button
+              key={v.id}
+              type="button"
+              onClick={() => setView(v.id)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors ${
+                activeView === v.id
+                  ? 'bg-primary-fixed text-on-primary-fixed'
+                  : 'text-on-surface-variant hover:text-on-surface'
+              }`}
+            >
+              <Icon name={v.icon} className="!text-base" />
+              {v.label}
+            </button>
+          ))}
+        </div>
+
         <span className="absolute bottom-3 left-1/2 -translate-x-1/2 font-label-mono text-xs uppercase text-on-surface-variant bg-background/70 border border-outline-variant/30 rounded px-2 py-1 pointer-events-none">
-          Drag the machine to look around
+          {seats > 1 ? 'Drag to walk the lab · pinch to zoom' : 'Drag to look around the room · pinch to zoom'}
         </span>
       </div>
 

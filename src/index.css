@@ -42,4 +42,69 @@
   .material-symbols-outlined {
     font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
   }
+
+  /* --- "Design my system" launch sequence --- */
+  .launch-rocket {
+    position: absolute;
+    left: 50%;
+    bottom: 42px;
+    animation: launch-hover 0.9s ease-in-out infinite;
+  }
+
+  .launch-rocket.is-off {
+    animation: launch-liftoff 0.62s cubic-bezier(0.45, 0, 0.7, 0.2) forwards;
+  }
+
+  .launch-flame {
+    position: absolute;
+    left: 50%;
+    top: calc(100% - 10px);
+    width: 14px;
+    height: 34px;
+    border-radius: 0 0 60% 60%;
+    background: linear-gradient(180deg, #56ffa8 0%, rgba(86, 255, 168, 0.55) 45%, rgba(86, 255, 168, 0) 100%);
+    transform-origin: top center;
+    animation: launch-flame 0.16s ease-in-out infinite;
+  }
+
+  .launch-stars {
+    background-image:
+      radial-gradient(circle, rgba(86, 255, 168, 0.55) 1px, transparent 1.6px),
+      radial-gradient(circle, rgba(218, 229, 218, 0.28) 1px, transparent 1.6px);
+    background-size: 54px 90px, 87px 140px;
+    animation: launch-stars 1.1s linear infinite;
+  }
+
+  @keyframes launch-hover {
+    0%, 100% { transform: translateX(-50%) translateY(0) rotate(-1.5deg); }
+    50%      { transform: translateX(-50%) translateY(-7px) rotate(1.5deg); }
+  }
+
+  @keyframes launch-liftoff {
+    0%   { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateX(-50%) translateY(-230px) scale(0.45); opacity: 0; }
+  }
+
+  @keyframes launch-flame {
+    0%, 100% { transform: translateX(-50%) scaleY(0.65); opacity: 0.7; }
+    50%      { transform: translateX(-50%) scaleY(1.3);  opacity: 1; }
+  }
+
+  @keyframes launch-stars {
+    from { background-position: 0 0, 0 0; }
+    to   { background-position: 0 90px, 0 140px; }
+  }
+
+  /* The launch is a flourish, never the only way to know what is happening —
+     the stage list below it says the same thing in words. */
+  @media (prefers-reduced-motion: reduce) {
+    .launch-rocket,
+    .launch-rocket.is-off,
+    .launch-flame,
+    .launch-stars {
+      animation: none;
+    }
+    .launch-rocket { transform: translateX(-50%); }
+    .launch-flame  { transform: translateX(-50%); }
+  }
 }
