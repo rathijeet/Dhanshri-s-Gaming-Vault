@@ -50,7 +50,7 @@ export default function Header({ onBook }) {
             className="text-on-surface-variant hover:text-primary-fixed transition-colors font-body-md text-body-md flex items-center gap-1"
           >
             <Icon name="memory" className="!text-base" />
-            Build a PC
+            PCs & Laptops
             <NewBadge />
           </Link>
           {shopEnabled && (
@@ -100,7 +100,7 @@ export default function Header({ onBook }) {
               className="py-4 font-body-md text-body-md text-on-surface hover:text-primary-fixed border-b border-outline-variant/10 flex items-center gap-2"
             >
               <Icon name="memory" className="!text-base" />
-              Build a PC
+              PCs & Laptops
               <NewBadge />
             </Link>
             {shopEnabled && (

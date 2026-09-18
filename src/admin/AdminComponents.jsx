@@ -260,7 +260,22 @@ function ComponentRow({ component: c, busy, onEdit, onDelete }) {
         <h3 className="font-headline-sm text-body-md font-bold text-on-surface truncate mt-1">
           {c.brand} {c.name}
         </h3>
-        {c.vram_gb ? (
+        {c.type === 'laptop' ? (
+          // A laptop row is a whole machine, so "24 GB VRAM" alone says almost
+          // nothing. These are the four fields that identify it at a glance —
+          // and a missing TGP is called out, because without it the matcher
+          // cannot tell this machine apart from a slower one with the same
+          // graphics card on the box.
+          <p className="font-body-md text-xs text-on-surface-variant truncate">
+            {[
+              c.gpu_model,
+              c.gpu_tgp_watts ? `${c.gpu_tgp_watts}W` : (c.gpu_model && c.compute_platform === 'cuda' ? 'TGP not set' : null),
+              c.vram_gb ? `${c.vram_gb}GB VRAM` : null,
+              c.ram_gb ? `${c.ram_gb}GB RAM` : null,
+              c.weight_kg ? `${c.weight_kg}kg` : null,
+            ].filter(Boolean).join(' · ')}
+          </p>
+        ) : c.vram_gb ? (
           <p className="font-body-md text-xs text-on-surface-variant">{c.vram_gb} GB VRAM</p>
         ) : null}
       </div>
@@ -276,6 +291,11 @@ function ComponentRow({ component: c, busy, onEdit, onDelete }) {
             <p className="font-display-lg text-body-lg text-primary-fixed">
               {formatRupees(Number(c.current_price))}
             </p>
+            {c.type === 'laptop' && (
+              <p className="font-body-md text-xs text-on-surface-variant">
+                {formatRupees(Math.round(Number(c.current_price) * 1.18))} incl. GST
+              </p>
+            )}
             <p className={`font-body-md text-xs flex items-center justify-end gap-1 ${
               stale ? 'text-amber-300' : 'text-on-surface-variant'
             }`}>

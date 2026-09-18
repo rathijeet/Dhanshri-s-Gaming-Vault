@@ -47,10 +47,10 @@ export default function Hero({ onBook }) {
             </span>
             <span className="text-left">
               <span className="font-headline-sm text-sm font-bold text-on-surface block">
-                Design your own PC or AI lab
+                Design a PC, or find the right laptop
               </span>
               <span className="font-body-md text-xs text-on-surface-variant">
-                Tell us what you need — we build and price it in 3D
+                Towers and AI labs built part by part — laptops matched and priced
               </span>
             </span>
             <Icon name="chevron_right" className="!text-xl text-on-surface-variant group-hover:text-primary-fixed transition-colors" />

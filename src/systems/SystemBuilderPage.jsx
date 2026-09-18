@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { WORKLOADS, CORE_TYPES } from './profiles'
-import { designLab, designSystem, finaliseBuild, isUsable } from './engine'
+import { CORE_TYPES, workloadsFor } from './profiles'
+import { MIN_SYSTEM_BUDGET, designLab, designSystem, finaliseBuild, isUsable } from './engine'
 import { validateBuild } from './compatibility'
 import { parseIntent } from './intent'
 import { fetchCatalogue, formatRupees, formatShort } from './publicSystemHelpers'
@@ -9,6 +9,33 @@ import { BUSINESS_NAME, WHATSAPP_NUMBER } from '../config'
 import Icon from '../components/Icon'
 import Logo from '../components/Logo'
 import SystemTestDrive from './SystemTestDrive'
+import LaptopFinder from './LaptopFinder'
+import { BudgetPrompt, DesignButton, LaunchCard, NumberField, Panel, Row } from './BuilderUI'
+
+// Desktop or laptop is the FIRST question, not a filter on the second, because
+// the two are different products with different physics. A desktop is designed
+// part by part and can be upgraded for years; a laptop is a finished machine
+// whose graphics card, screen and cooling are fixed the day you buy it. They
+// share a page and share nothing else — see laptops.js.
+const FORM_FACTORS = [
+  {
+    id: 'desktop',
+    label: 'Desktop',
+    icon: 'dns',
+    hint: 'Tower, workstation or a whole lab — designed part by part',
+  },
+  {
+    id: 'laptop',
+    label: 'Laptop',
+    icon: 'laptop_windows',
+    hint: 'Matched from finished machines — because you cannot build one',
+  },
+]
+
+// Only the workloads the parts catalogue can actually score. Software
+// development and CAD are laptop-only until desktop components carry those
+// columns — see profiles.js.
+const WORKLOADS = workloadsFor('desktop')
 
 const MODES = [
   { id: 'describe', label: 'Describe it',   icon: 'auto_awesome', hint: 'Tell us in your own words' },
@@ -54,6 +81,10 @@ export default function SystemBuilderPage() {
   const [catalogue, setCatalogue] = useState([])
   const [loading, setLoading]     = useState(true)
   const [loadError, setLoadError] = useState('')
+
+  const [formFactor, setFormFactor] = useState('desktop')
+  // Text carried across when a desktop brief turns out to describe a laptop.
+  const [handoff, setHandoff] = useState(null)
 
   const [mode, setMode]       = useState('describe')
   const [text, setText]       = useState('')
@@ -126,6 +157,16 @@ export default function SystemBuilderPage() {
 
     const parsed = await parseIntent(text)
     if (!aliveRef.current) return
+
+    // Someone who wrote "laptop" into the desktop box gets taken to the laptop
+    // track with their words intact, rather than handed a tower they cannot
+    // carry. The brief is re-read there; nothing is assumed on their behalf.
+    if (parsed.formFactor === 'laptop') {
+      setFormFactor('laptop')
+      setHandoff((h) => ({ text, at: (h?.at || 0) + 1 }))
+      return
+    }
+
     setBrief(parsed)
     // Nothing to price if we could not tell what the machine is for — the
     // panel under the box explains that case on its own.
@@ -198,6 +239,13 @@ export default function SystemBuilderPage() {
     : (result?.seat?.validation || result?.validation)?.issues || []
   const manualReady = CORE_TYPES.every((t) => manual[t])
 
+  // Budget-prompt copy, derived here rather than inline: an IIFE in the JSX
+  // evaluates during render, and these callbacks reach refs.
+  const askSeats = askBudget?.seats || 1
+  const askIsLab = askSeats > 1
+  const askWorkload = WORKLOADS.find((w) => w.id === askBudget?.workloadId)
+  const askMin = askIsLab ? MIN_SYSTEM_BUDGET * askSeats : MIN_SYSTEM_BUDGET
+
   const onWhatsApp = () => {
     if (!result?.ok) return
     const partLines = (b, label) => [
@@ -264,22 +312,67 @@ export default function SystemBuilderPage() {
 
       <main className="flex-1 max-w-container-max w-full mx-auto px-margin-mobile md:px-margin-desktop py-8">
         {/* HERO */}
-        <div className="mb-8">
+        <div className="mb-6">
           <p className="font-label-mono text-label-mono text-primary-fixed uppercase mb-2">
             Design your own system
           </p>
-          <h1 className="font-display-lg text-display-lg-mobile md:text-headline-md text-on-surface mb-3">
-            Build a PC, workstation or AI lab
-          </h1>
-          <p className="font-body-md text-body-lg text-on-surface-variant max-w-2xl">
-            Describe what you need in plain words, set a budget, or pick every part yourself.
-            We design it, check that everything fits, and price it from real components — then
-            you can walk around the finished machine in 3D and watch it run.
-          </p>
+          {formFactor === 'laptop' ? (
+            <>
+              <h1 className="font-display-lg text-display-lg-mobile md:text-headline-md text-on-surface mb-3">
+                Find the right laptop
+              </h1>
+              <p className="font-body-md text-body-lg text-on-surface-variant max-w-2xl">
+                A laptop cannot be built, so we do not pretend to build one. Tell us what it is
+                for and how often you carry it, and we match finished machines — then tell you
+                the things a retail page will not: how many watts the chassis lets the graphics
+                card draw, whether the memory is soldered for life, and what this machine will
+                never be able to do.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="font-display-lg text-display-lg-mobile md:text-headline-md text-on-surface mb-3">
+                Build a PC, workstation or AI lab
+              </h1>
+              <p className="font-body-md text-body-lg text-on-surface-variant max-w-2xl">
+                Describe what you need in plain words, set a budget, or pick every part yourself.
+                We design it, check that everything fits, and price it from real components — then
+                you can walk around the finished machine in 3D and watch it run.
+              </p>
+            </>
+          )}
+        </div>
+
+        {/* FORM FACTOR */}
+        <div className="grid grid-cols-2 gap-2 mb-6 max-w-xl">
+          {FORM_FACTORS.map((f) => {
+            const active = formFactor === f.id
+            return (
+              <button
+                key={f.id}
+                type="button"
+                onClick={() => setFormFactor(f.id)}
+                aria-pressed={active}
+                className={`p-3 rounded-xl border-2 text-left transition-all ${
+                  active
+                    ? 'border-primary-fixed bg-primary-fixed/10'
+                    : 'border-outline-variant/30 bg-surface-container hover:border-primary-fixed/50'
+                }`}
+              >
+                <div className="flex items-center gap-2 mb-0.5">
+                  <Icon name={f.icon} className={`!text-xl ${active ? 'text-primary-fixed' : 'text-on-surface-variant'}`} />
+                  <span className={`font-headline-sm text-sm font-bold ${active ? 'text-primary-fixed' : 'text-on-surface'}`}>
+                    {f.label}
+                  </span>
+                </div>
+                <p className="font-body-md text-xs text-on-surface-variant">{f.hint}</p>
+              </button>
+            )
+          })}
         </div>
 
         {/* MODE TABS */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        <div className={`flex gap-2 mb-6 overflow-x-auto pb-1 ${formFactor === 'laptop' ? 'hidden' : ''}`}>
           {MODES.map((m) => {
             const active = mode === m.id
             return (
@@ -310,6 +403,8 @@ export default function SystemBuilderPage() {
           </div>
         ) : loading ? (
           <p className="font-body-md text-on-surface-variant">Loading the parts catalogue…</p>
+        ) : formFactor === 'laptop' ? (
+          <LaptopFinder catalogue={usable} handoff={handoff} />
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
             {/* ---------------- LEFT: controls ---------------- */}
@@ -488,7 +583,7 @@ export default function SystemBuilderPage() {
                 nothing next to the full-screen test drive, and it pushed the
                 parts list — the thing customers came to read — off the fold. */}
             <div ref={resultRef} className="lg:col-span-3 space-y-4 scroll-mt-24">
-              {stage >= 0 && <LaunchCard stage={stage} />}
+              {stage >= 0 && <LaunchCard stage={stage} stages={LAUNCH_STAGES} />}
 
               {stage < 0 && issues.length > 0 && (
                 <div className="bg-error-container/20 border border-error/40 rounded-2xl p-4 space-y-2">
@@ -527,14 +622,30 @@ export default function SystemBuilderPage() {
 
       {askBudget && (
         <BudgetPrompt
-          brief={askBudget}
+          formatShort={formatShort}
+          summary={
+            <>
+              We read this as <span className="text-primary-fixed font-bold">{askWorkload?.label}</span>
+              {askIsLab ? ` for ${askSeats} systems` : ''}
+              {askBudget.vramHint ? ` · needs ${askBudget.vramHint}GB VRAM` : ''}
+            </>
+          }
+          explain="Parts change price every week, so the budget is what decides the build — we'd rather ask than guess at it."
+          label={askIsLab ? `Total for all ${askSeats} systems` : 'Budget'}
+          min={askMin}
+          presets={askIsLab
+            ? [askSeats * 35000, askSeats * 55000, askSeats * 90000, askSeats * 150000]
+            : [60000, 100000, 175000, 300000]}
+          minHint={askIsLab
+            ? `A ${askSeats}-seat lab needs at least ${formatShort(askMin)} in total to build anything that works.`
+            : `The cheapest machine we'd stand behind starts around ${formatShort(askMin)}.`}
           onCancel={() => setAskBudget(null)}
           onSubmit={(amount) => startFromBrief(askBudget, amount)}
         />
       )}
 
       <SystemTestDrive
-        open={testOpen}
+        open={testOpen && formFactor === 'desktop'}
         onClose={() => setTestOpen(false)}
         build={build}
         rgbColor={rgb}
@@ -543,18 +654,6 @@ export default function SystemBuilderPage() {
         initialScene={workloadId}
       />
     </div>
-  )
-}
-
-function Panel({ title, hint, children }) {
-  return (
-    <section className="bg-surface-container-high rounded-2xl border border-outline-variant/20 p-5 space-y-4">
-      <div>
-        <h2 className="font-headline-sm text-body-lg font-bold text-on-surface">{title}</h2>
-        {hint && <p className="font-body-md text-xs text-on-surface-variant mt-0.5">{hint}</p>}
-      </div>
-      {children}
-    </section>
   )
 }
 
@@ -716,202 +815,6 @@ function LabSummaryPanel({ result, build, onWhatsApp, onTest }) {
   )
 }
 
-// One button, one meaning, in all three modes: this is where a build gets
-// designed. Leaving budget mode to re-design itself on every slider tick meant
-// there was nothing to press and no moment where anything happened.
-function DesignButton({ onClick, disabled, running, label = 'Design my system' }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled || running}
-      className="w-full bg-primary-fixed text-on-primary-fixed px-6 py-3.5 rounded-xl font-bold font-headline-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform neon-glow disabled:opacity-50 disabled:hover:scale-100"
-    >
-      <Icon name={running ? 'rocket_launch' : 'auto_awesome'} className="!text-xl" filled={running} />
-      {running ? 'Designing…' : label}
-    </button>
-  )
-}
-
-// Asked when the brief did not name a number. The build is not designed until
-// this is answered: pricing a machine against a budget nobody set produces a
-// quote that looks authoritative and means nothing.
-function BudgetPrompt({ brief, onCancel, onSubmit }) {
-  const [value, setValue] = useState('')
-  const inputRef = useRef(null)
-
-  const seats = brief.seats || 1
-  const isLab = seats > 1
-  const min = isLab ? 20000 * seats : 20000
-
-  useEffect(() => {
-    const t = setTimeout(() => inputRef.current?.focus(), 60)
-    const onKey = (e) => { if (e.key === 'Escape') onCancel() }
-    document.addEventListener('keydown', onKey)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      clearTimeout(t)
-      document.removeEventListener('keydown', onKey)
-      document.body.style.overflow = ''
-    }
-  }, [onCancel])
-
-  const amount = Number(String(value).replace(/[^0-9.]/g, ''))
-  const valid = Number.isFinite(amount) && amount >= min
-  const workload = WORKLOADS.find((w) => w.id === brief.workloadId)
-  const presets = isLab
-    ? [seats * 35000, seats * 55000, seats * 90000, seats * 150000]
-    : [60000, 100000, 175000, 300000]
-
-  const submit = () => { if (valid) onSubmit(Math.round(amount)) }
-
-  return (
-    <div
-      className="fixed inset-0 z-[140] bg-background/80 backdrop-blur-sm flex items-center justify-center p-margin-mobile"
-      onClick={onCancel}
-      role="presentation"
-    >
-      <div
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="budget-prompt-title"
-        onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md bg-surface-container-high border border-outline-variant/30 rounded-2xl p-6 space-y-5"
-      >
-        <div>
-          <p className="font-label-mono text-label-mono text-primary-fixed uppercase mb-2">One thing first</p>
-          <h2 id="budget-prompt-title" className="font-display-lg text-headline-sm text-on-surface mb-2">
-            What&rsquo;s your budget?
-          </h2>
-          <p className="font-body-md text-sm text-on-surface-variant">
-            We read this as <span className="text-primary-fixed font-bold">{workload?.label}</span>
-            {isLab ? ` for ${seats} systems` : ''}
-            {brief.vramHint ? ` · needs ${brief.vramHint}GB VRAM` : ''}. Parts change price
-            every week, so the budget is what decides the build — we&rsquo;d rather ask than
-            guess at it.
-          </p>
-        </div>
-
-        <div>
-          <label htmlFor="budget-prompt-input" className="font-label-mono text-label-mono text-on-surface-variant uppercase block mb-2">
-            {isLab ? `Total for all ${seats} systems` : 'Budget'}
-          </label>
-          <div className="flex items-center rounded-xl border-2 border-outline-variant/40 focus-within:border-primary-fixed bg-surface-container">
-            <span className="font-display-lg text-headline-sm text-on-surface-variant pl-4">₹</span>
-            <input
-              id="budget-prompt-input"
-              ref={inputRef}
-              type="text"
-              inputMode="numeric"
-              value={value}
-              placeholder={String(presets[1])}
-              onChange={(e) => setValue(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') submit() }}
-              className="flex-1 min-w-0 bg-transparent px-3 py-3.5 font-display-lg text-headline-sm text-primary-fixed focus:outline-none placeholder:text-on-surface-variant/40"
-            />
-          </div>
-          <div className="flex flex-wrap gap-2 mt-3">
-            {presets.map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setValue(String(p))}
-                className="border border-outline-variant/30 bg-surface-container text-on-surface-variant hover:border-primary-fixed/50 hover:text-on-surface px-3 py-1.5 rounded-lg text-xs font-bold transition-all"
-              >
-                {formatShort(p)}
-              </button>
-            ))}
-          </div>
-          {value && !valid && (
-            <p className="font-body-md text-xs text-amber-300 mt-2">
-              {isLab
-                ? `A ${seats}-seat lab needs at least ${formatShort(min)} in total to build anything that works.`
-                : `The cheapest machine we’d stand behind starts around ${formatShort(min)}.`}
-            </p>
-          )}
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="flex-1 border border-outline-variant/40 text-on-surface-variant hover:text-on-surface hover:border-primary-fixed/50 px-4 py-3 rounded-xl font-bold font-headline-sm text-sm transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={submit}
-            disabled={!valid}
-            className="flex-[2] bg-primary-fixed text-on-primary-fixed px-4 py-3 rounded-xl font-bold font-headline-sm text-sm flex items-center justify-center gap-2 hover:scale-[1.02] transition-transform neon-glow disabled:opacity-40 disabled:hover:scale-100"
-          >
-            <Icon name="rocket_launch" className="!text-lg" filled />
-            Design it
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Slider and typed entry over one value. The box only commits on blur or
-// Enter, so half-typed numbers never re-run the design, and whatever is
-// committed is clamped into range rather than rejected — a customer who types
-// 80 lakh gets the top of the range, not an error.
-function NumberField({ label, value, onCommit, min, max, step, prefix, footLeft, footRight, note }) {
-  // null means "not being edited" — the field shows the real value.
-  const [draft, setDraft] = useState(null)
-
-  // Committed from the element's own value rather than from state: focus, type
-  // and blur can land in one React batch, and state read inside that batch is
-  // a render behind. The DOM never is.
-  const commit = (raw) => {
-    setDraft(null)
-    const text = String(raw ?? '').replace(/[^0-9.]/g, '')
-    if (!text) return
-    const n = Number(text)
-    if (!Number.isFinite(n)) return
-    onCommit(Math.min(max, Math.max(min, Math.round(n))))
-  }
-
-  return (
-    <div>
-      <div className="flex justify-between items-center gap-3 mb-2">
-        <label className="font-label-mono text-label-mono text-on-surface-variant uppercase">{label}</label>
-        <div className="flex items-center rounded-lg border border-outline-variant/40 focus-within:border-primary-fixed bg-surface-container">
-          {prefix && <span className="font-body-md text-sm text-on-surface-variant pl-2.5">{prefix}</span>}
-          <input
-            type="text"
-            inputMode="numeric"
-            aria-label={label}
-            value={draft ?? String(value)}
-            onFocus={(e) => { setDraft(String(value)); e.target.select() }}
-            onChange={(e) => setDraft(e.target.value)}
-            onBlur={(e) => commit(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.currentTarget.blur()
-              if (e.key === 'Escape') { setDraft(null); e.currentTarget.blur() }
-            }}
-            className="w-28 bg-transparent px-2 py-1.5 font-display-lg text-headline-sm text-primary-fixed text-right focus:outline-none"
-          />
-        </div>
-      </div>
-      <input
-        type="range" min={min} max={max} step={step}
-        value={value}
-        onChange={(e) => onCommit(Number(e.target.value))}
-        className="w-full accent-primary-fixed"
-      />
-      {(footLeft || footRight) && (
-        <div className="flex justify-between font-body-md text-xs text-on-surface-variant">
-          <span>{footLeft}</span><span>{footRight}</span>
-        </div>
-      )}
-      {note && <p className="font-body-md text-xs text-on-surface-variant">{note}</p>}
-    </div>
-  )
-}
-
 // A part's name IS the spec the customer is checking — DDR4 against DDR5,
 // 512GB against 1TB, which exact RTX card. Truncating it to keep the row on one
 // line hides the only thing on the row worth reading, so the name wraps instead
@@ -930,62 +833,6 @@ function PartRow({ type, part }) {
       <span className="font-body-md text-sm text-on-surface-variant flex-shrink-0 tabular-nums">
         {formatRupees(Number(part.current_price))}
       </span>
-    </div>
-  )
-}
-
-function LaunchCard({ stage }) {
-  const lifting = stage >= LAUNCH_STAGES.length
-  return (
-    <div className="bg-surface-container-high rounded-2xl border border-outline-variant/20 overflow-hidden">
-      <div className="relative h-52 bg-surface-container-lowest overflow-hidden">
-        <div className="absolute inset-0 launch-stars" />
-        <div className="absolute inset-x-0 bottom-0 h-20 hardware-card-gradient" />
-        <div className={`launch-rocket ${lifting ? 'is-off' : ''}`}>
-          <Icon name="rocket_launch" className="!text-5xl text-primary-fixed" filled />
-          <span className="launch-flame" />
-        </div>
-        <p className="absolute top-3 left-4 font-label-mono text-label-mono uppercase text-primary-fixed">
-          {lifting ? 'Build ready' : 'Designing'}
-        </p>
-      </div>
-
-      <div className="p-5 space-y-2">
-        {LAUNCH_STAGES.map((s, i) => {
-          const done = stage > i
-          const live = stage === i
-          return (
-            <div
-              key={s.label}
-              className={`flex items-center gap-3 transition-opacity ${done || live ? 'opacity-100' : 'opacity-35'}`}
-            >
-              <Icon
-                name={done ? 'check_circle' : s.icon}
-                filled={done}
-                className={`!text-lg ${done ? 'text-primary-fixed' : live ? 'text-on-surface' : 'text-on-surface-variant'}`}
-              />
-              <span className={`font-body-md text-sm ${live ? 'text-on-surface font-bold' : 'text-on-surface-variant'}`}>
-                {s.label}
-              </span>
-            </div>
-          )
-        })}
-        <div className="h-1 rounded-full bg-outline-variant/20 overflow-hidden mt-3">
-          <div
-            className="h-full bg-primary-fixed transition-[width] duration-300 ease-out"
-            style={{ width: `${Math.min(100, ((stage + 1) / (LAUNCH_STAGES.length + 1)) * 100)}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function Row({ label, value, bold }) {
-  return (
-    <div className="flex justify-between items-baseline">
-      <span className={`font-body-md text-sm ${bold ? 'text-on-surface font-bold' : 'text-on-surface-variant'}`}>{label}</span>
-      <span className={bold ? 'font-display-lg text-headline-sm text-primary-fixed' : 'font-body-md text-sm text-on-surface'}>{value}</span>
     </div>
   )
 }

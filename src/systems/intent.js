@@ -25,10 +25,29 @@ const WORKLOAD_SIGNALS = {
     'gaming', 'game', 'games', 'fps', 'valorant', 'cyberpunk', 'gta', 'cod', 'warzone',
     'esports', 'bgmi', 'fortnite', 'streaming', '144hz', '165hz', '240hz', 'ray tracing',
   ],
+  dev: [
+    'software development', 'software developer', 'development', 'developer', 'coding',
+    'programming', 'programmer', 'docker', 'kubernetes', 'containers', 'virtual machine',
+    'vm', 'android studio', 'xcode', 'visual studio', 'intellij', 'compile', 'compiling',
+    'full stack', 'full-stack', 'backend', 'frontend', 'web development', 'devops',
+    'ide', 'repositories', 'git',
+  ],
+  cad: [
+    'cad', 'solidworks', 'autocad', 'revit', 'fusion 360', 'inventor', 'catia', 'creo',
+    'siemens nx', 'ansys', 'simulation', 'assemblies', 'engineering drawing', 'architect',
+    'architecture', 'bim', 'staad', 'etabs', 'mechanical design', 'product design',
+  ],
   office: [
     'office', 'study', 'student', 'school', 'browsing', 'excel', 'word', 'basic',
     'typing', 'billing', 'accounting', 'clerical', 'everyday',
     'computer lab', 'computer laboratory',
+    // A training centre trains people, not models. Without these the word
+    // "training" alone reads as an AI brief and quotes a school a rack of
+    // GPUs when it wanted twenty office laptops.
+    'training centre', 'training center', 'training institute', 'coaching',
+    'tuition', 'staff', 'employees', 'back office',
+    'business', 'business laptop', 'professional', 'consultant', 'meetings',
+    'presentations', 'reports', 'client work', 'admin work',
   ],
 }
 
@@ -42,6 +61,151 @@ const MODEL_VRAM = [
   { params: 8,  vram: 8 },
   { params: 7,  vram: 8 },
 ]
+
+// Laptop or desktop. This is not a nuance of the brief — it is a different
+// product with different physics, so it is parsed as a top-level fact rather
+// than inferred from the workload. "Portable" is the tell; so is naming a
+// laptop brand line.
+const FORM_SIGNALS = {
+  laptop: [
+    'laptop', 'notebook', 'macbook', 'thinkpad', 'ideapad', 'ultrabook', 'chromebook',
+    'portable', 'portability', 'carry', 'carry it', 'travel', 'travelling', 'commute',
+    'on the go', 'take it with me', 'take it to college', 'take to college', 'hostel',
+    'campus', 'in my bag', 'lightweight', 'light weight', 'battery life',
+  ],
+  desktop: [
+    'desktop', 'tower', 'cabinet', 'rig', 'workstation', 'build a pc', 'assemble',
+    'assembled pc', 'custom pc', 'full tower', 'mid tower', 'my desk setup',
+  ],
+}
+
+// How often it actually moves. On a laptop this decides the machine as much as
+// the budget does, because weight and sustained performance trade directly.
+const PORTABILITY_SIGNALS = {
+  carry_daily: [
+    'every day', 'everyday', 'daily', 'college', 'campus', 'class', 'classes',
+    'commute', 'travel', 'lightweight', 'light weight', 'thin', 'in my bag',
+    'carry it everywhere', 'on the go',
+  ],
+  stays_home: [
+    'stays on my desk', 'stays at home', 'mostly at home', 'rarely move',
+    'rarely carry', 'desk', 'wont move', "won't move", 'desktop replacement',
+    'space', 'no space', 'small room',
+  ],
+}
+
+// Signal matching, shared by every parser below.
+//
+// The obvious `text.includes(signal)` is wrong in a way that is easy to miss
+// and hard to spot in testing: "coding" contains "cod" (Call of Duty), "aim"
+// and "air" contain "ai", "gamer" contains "game". The first cost us a real
+// misread — "coding laptop" came back as a GAMING brief — so matching is by
+// whole word, with a trailing "s" allowed so "games" still finds "game".
+function normalise(text) {
+  return ` ${String(text || '')
+    .toLowerCase()
+    // Punctuation becomes a gap. The marks kept inside words are the ones the
+    // signal lists actually use: a.i, ai/ml, fine-tune, full-stack, won't.
+    .replace(/[^a-z0-9.+/'-]+/g, ' ')
+    .split(' ')
+    .map((w) => w.replace(/^[.'-]+/, '').replace(/[.'-]+$/, ''))
+    .filter(Boolean)
+    .join(' ')} `
+}
+
+// Multi-word phrases are stronger evidence than a single word, so they score
+// higher — "machine learning" means it, "ml" might be a typo.
+function countHits(padded, signals) {
+  let score = 0
+  for (const sig of signals) {
+    if (padded.includes(` ${sig} `) || padded.includes(` ${sig}s `)) {
+      score += sig.includes(' ') ? 3 : 1
+    }
+  }
+  return score
+}
+
+export function parseFormFactor(text) {
+  const t = ` ${String(text || '').toLowerCase()} `
+  const hit = (sigs) => sigs.reduce((n, s) => (t.includes(` ${s} `) || t.includes(`${s} `) || t.includes(` ${s}`) ? n + (s.includes(' ') ? 3 : 1) : n), 0)
+  const laptop = hit(FORM_SIGNALS.laptop)
+  const desktop = hit(FORM_SIGNALS.desktop)
+  if (laptop > desktop) return 'laptop'
+  if (desktop > laptop) return 'desktop'
+  return null
+}
+
+export function parsePortability(text) {
+  const t = normalise(text)
+  const daily = countHits(t, PORTABILITY_SIGNALS.carry_daily)
+  const home  = countHits(t, PORTABILITY_SIGNALS.stays_home)
+  if (daily > home && daily > 0) return 'carry_daily'
+  if (home > daily && home > 0) return 'stays_home'
+  return null
+}
+
+// Nobody shops by manufacturer name alone. They say "thinkpad", "macbook",
+// "omen", "rog" — a product line, not a company — so the line resolves to the
+// company that makes it.
+const BRAND_ALIASES = {
+  Apple:     ['macbook', 'mac book'],
+  Lenovo:    ['thinkpad', 'ideapad', 'legion', 'loq', 'yoga', 'thinkbook'],
+  ASUS:      ['rog', 'tuf', 'zenbook', 'vivobook', 'zephyrus', 'proart', 'strix'],
+  HP:        ['omen', 'victus', 'pavilion', 'zbook', 'envy', 'elitebook', 'probook', 'spectre'],
+  Dell:      ['inspiron', 'xps', 'latitude', 'precision', 'alienware'],
+  Acer:      ['predator', 'nitro', 'swift', 'aspire', 'helios', 'travelmate'],
+  MSI:       ['katana', 'stealth', 'raider', 'cyborg', 'prestige', 'titan'],
+  Gigabyte:  ['aorus'],
+  Samsung:   ['galaxy book', 'galaxybook'],
+  Infinix:   ['inbook', 'zerobook'],
+  Microsoft: ['surface'],
+}
+
+// Brands people ask for that we may not carry. Recognising them is the whole
+// point: without this list "razer laptop 2 lakh" parses as no brand at all and
+// the customer is quietly handed a Lenovo. With it they are told we do not list
+// Razer, shown what we do list, and offered a sourcing conversation.
+const OTHER_LAPTOP_BRANDS = [
+  'Razer', 'Microsoft', 'LG', 'Honor', 'Xiaomi', 'Redmi', 'Realme', 'VAIO',
+  'Huawei', 'Toshiba', 'Fujitsu', 'Chuwi', 'Ultimus', 'Primebook', 'Zebronics',
+  'Tecno', 'AVITA', 'Wings', 'Colorful', 'Thomson', 'Walker',
+]
+
+/**
+ * Brand from free text.
+ *
+ * `brands` is whatever is actually in the catalogue, so a brand the owner adds
+ * through the admin screen becomes searchable immediately with no code change.
+ * A recognised brand we do NOT stock still comes back — that is an answerable
+ * situation, not a miss, and the matcher turns it into a straight answer.
+ * Longest match wins, so "galaxy book" beats a stray "book".
+ */
+export function parseBrand(text, brands = []) {
+  const t = ` ${String(text || '').toLowerCase().replace(/[^a-z0-9+ ]/g, ' ').replace(/\s+/g, ' ')} `
+  const hit = (needle) => t.includes(` ${needle} `)
+
+  let best = null
+  const consider = (brand, matched) => {
+    if (!best || matched.length > best.len) best = { brand, len: matched.length }
+  }
+
+  // 1. the brand's own name, as the catalogue spells it
+  for (const brand of brands) {
+    const n = String(brand || '').toLowerCase().trim()
+    if (n && hit(n)) consider(brand, n)
+  }
+  // 2. a product line standing in for its maker
+  for (const [brand, aliases] of Object.entries(BRAND_ALIASES)) {
+    for (const a of aliases) if (hit(a)) consider(brand, a)
+  }
+  // 3. a brand we recognise but may not stock
+  for (const brand of OTHER_LAPTOP_BRANDS) {
+    const n = brand.toLowerCase()
+    if (hit(n)) consider(brand, n)
+  }
+
+  return best ? best.brand : null
+}
 
 export function parseBudget(text) {
   const t = String(text || '').toLowerCase().replace(/,/g, '')
@@ -70,7 +234,7 @@ export function parseBudget(text) {
 export function parseSeats(text) {
   const t = String(text || '').toLowerCase()
   const m =
-    t.match(/(\d{1,3})\s*(?:seats?|systems?|computers?|pcs?|machines?|workstations?|students?|users?|kids|children)/) ||
+    t.match(/(\d{1,3})\s*(?:seats?|systems?|computers?|pcs?|machines?|workstations?|laptops?|notebooks?|units?|devices?|students?|users?|kids|children)/) ||
     t.match(/(?:lab|classroom|setup)\s*(?:of|for|with)\s*(\d{1,3})/) ||
     t.match(/(?:for)\s+(\d{1,3})\s+(?:students?|people|users?)/)
   if (!m) return 1
@@ -94,16 +258,10 @@ export function parseVramHint(text) {
 }
 
 export function parseWorkload(text) {
-  const t = ` ${String(text || '').toLowerCase()} `
+  const t = normalise(text)
   const scores = {}
   for (const [id, signals] of Object.entries(WORKLOAD_SIGNALS)) {
-    let s = 0
-    for (const sig of signals) {
-      if (t.includes(` ${sig} `) || t.includes(`${sig} `) || t.includes(` ${sig}`)) {
-        // longer phrases are stronger evidence than single words
-        s += sig.includes(' ') ? 3 : 1
-      }
-    }
+    const s = countHits(t, signals)
     if (s) scores[id] = s
   }
   const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1])
@@ -125,13 +283,24 @@ export async function parseIntent(text, { enrich } = {}) {
   const budget = parseBudget(text)
   const seats = parseSeats(text)
   const vramHint = parseVramHint(text)
+  const formFactor = parseFormFactor(text)
+  const portability = parsePortability(text)
   const { workloadId, confidence, scores } = parseWorkload(text)
 
   // "AI lab for 30 students, 10 lakh" means ten lakh for the lab, not per desk.
   // Reading it per-seat multiplies the quote by the seat count.
   const budgetIsTotal = seats > 1 && budget !== null
 
-  let brief = { text, workloadId, budget, seats, vramHint, confidence, budgetIsTotal, source: 'rules' }
+  // Nobody quotes a model size or a VRAM figure for office work. "Run 30B
+  // models locally" contains none of the AI keywords and would otherwise come
+  // back as not understood, which is a worse answer than the obvious one.
+  const inferred = workloadId || (vramHint ? 'ai' : null)
+
+  let brief = {
+    text, workloadId: inferred, budget, seats, vramHint, formFactor, portability,
+    confidence: inferred && !workloadId ? 0.6 : confidence,
+    budgetIsTotal, source: 'rules',
+  }
 
   const needsHelp = !workloadId || confidence < 0.5 || !budget
   if (needsHelp && typeof enrich === 'function') {
@@ -140,10 +309,11 @@ export async function parseIntent(text, { enrich } = {}) {
       if (extra && typeof extra === 'object') {
         brief = {
           ...brief,
-          workloadId: workloadId || extra.workloadId || null,
+          workloadId: inferred || extra.workloadId || null,
           budget: budget ?? (Number.isFinite(extra.budget) ? extra.budget : null),
           seats: seats > 1 ? seats : (Number.isFinite(extra.seats) ? extra.seats : seats),
           vramHint: vramHint ?? (Number.isFinite(extra.vramHint) ? extra.vramHint : null),
+          formFactor: formFactor || (extra.formFactor === 'laptop' || extra.formFactor === 'desktop' ? extra.formFactor : null),
           source: 'rules+ai',
         }
       }

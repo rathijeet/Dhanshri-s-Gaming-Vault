@@ -42,6 +42,8 @@ const EMPTY = {
   availability: 'in_stock',
   status: 'active',
   ai_score: '0',
+  dev_score: '0',
+  cad_score: '0',
   creator_score: '0',
   gaming_score: '0',
   office_score: '0',
@@ -247,18 +249,24 @@ export default function AdminComponentFormModal({ open, editing, onClose, onSave
         excludeId: editing?.id,
       })
 
-      const activeKeys = new Set(compatFields.map((f) => f.key))
+      // Driven by each field's declared input type rather than a list of key
+      // names, so adding a field to COMPAT_FIELDS is a one-line change.
+      const activeInput = new Map(compatFields.map((f) => [f.key, f.input]))
       const compat = Object.fromEntries(
         ALL_COMPAT_KEYS.map((k) => {
-          if (!activeKeys.has(k)) return [k, null]
-          if (k === 'supported_form_factors') {
-            const arr = form.supported_form_factors
+          const input = activeInput.get(k)
+          if (!input) return [k, null]          // not on this type — clear it
+          if (input === 'multi') {
+            const arr = form[k]
             return [k, Array.isArray(arr) && arr.length ? arr : null]
           }
-          if (k === 'socket' || k === 'ram_type' || k === 'form_factor') {
+          if (input === 'bool') {
+            return [k, form[k] === 'true' ? true : form[k] === 'false' ? false : null]
+          }
+          if (input === 'text' || input === 'select') {
             return [k, String(form[k] || '').trim() || null]
           }
-          return [k, num(form[k])]
+          return [k, num(form[k])]              // number | decimal
         })
       )
 
@@ -273,6 +281,8 @@ export default function AdminComponentFormModal({ open, editing, onClose, onSave
         availability: form.availability,
         status: form.status,
         ai_score: num(form.ai_score) ?? 0,
+        dev_score: num(form.dev_score) ?? 0,
+        cad_score: num(form.cad_score) ?? 0,
         creator_score: num(form.creator_score) ?? 0,
         gaming_score: num(form.gaming_score) ?? 0,
         office_score: num(form.office_score) ?? 0,
@@ -586,14 +596,18 @@ export default function AdminComponentFormModal({ open, editing, onClose, onSave
                 <ScoreField label="Creator"       value={form.creator_score} onChange={set('creator_score')} />
                 <ScoreField label="Gaming"        value={form.gaming_score}  onChange={set('gaming_score')} />
                 <ScoreField label="Office"        value={form.office_score}  onChange={set('office_score')} />
+                <ScoreField label="Development"   value={form.dev_score}     onChange={set('dev_score')} />
+                <ScoreField label="CAD"           value={form.cad_score}     onChange={set('cad_score')} />
               </div>
             </Section>
 
             {/* COMPATIBILITY */}
             {compatFields.length > 0 && (
               <Section
-                title="Compatibility"
-                hint="Used by the build engine to reject incompatible combinations. Leave blank if unknown — the part will simply be skipped by rules that need it."
+                title={form.type === 'laptop' ? 'The machine' : 'Compatibility'}
+                hint={form.type === 'laptop'
+                  ? 'A laptop is sold whole, so none of this is a compatibility check — it is what the matcher tells the customer. GPU power (TGP) matters most: it is the number that separates two laptops advertising the same graphics card.'
+                  : 'Used by the build engine to reject incompatible combinations. Leave blank if unknown — the part will simply be skipped by rules that need it.'}
               >
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {compatFields.map((f) => (
@@ -628,10 +642,21 @@ export default function AdminComponentFormModal({ open, editing, onClose, onSave
                               )
                             })}
                           </div>
+                        ) : f.input === 'bool' ? (
+                          <select
+                            value={form[f.key]}
+                            onChange={set(f.key)}
+                            className={`${INPUT} [color-scheme:dark]`}
+                          >
+                            <option value="">— not known —</option>
+                            <option value="true">Yes</option>
+                            <option value="false">No — soldered</option>
+                          </select>
                         ) : (
                           <input
-                            type={f.input === 'number' ? 'number' : 'text'}
-                            min={f.input === 'number' ? '0' : undefined}
+                            type={f.input === 'number' || f.input === 'decimal' ? 'number' : 'text'}
+                            min={f.input === 'number' || f.input === 'decimal' ? '0' : undefined}
+                            step={f.input === 'decimal' ? '0.01' : undefined}
                             value={form[f.key]}
                             onChange={set(f.key)}
                             placeholder={f.placeholder}

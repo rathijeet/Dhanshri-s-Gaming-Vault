@@ -24,6 +24,25 @@ export const COMPONENT_TYPES = [
   { id: 'monitor',     label: 'Monitor',      icon: 'desktop_windows',     fields: [] },
   { id: 'peripheral',  label: 'Peripheral',   icon: 'keyboard',            fields: [] },
   { id: 'network',     label: 'Networking',   icon: 'router',              fields: [] },
+  // A laptop is not a part — it is a whole machine in one row, and the matcher
+  // in src/systems/laptops.js reasons over every field below. There is no
+  // compatibility to check (nothing can be mismatched inside a sealed
+  // chassis); these fields exist to tell the customer the truth about it.
+  { id: 'laptop',      label: 'Laptop',       icon: 'laptop_windows',
+    fields: [
+      'cpu_model', 'gpu_model', 'vram_gb', 'gpu_tgp_watts', 'compute_platform',
+      'ram_gb', 'ram_type', 'ram_upgradable', 'max_ram_gb', 'capacity_gb',
+      'screen_size_in', 'screen_res', 'screen_refresh_hz',
+      'weight_kg', 'battery_wh', 'chassis_class', 'warranty_months',
+      'storage_upgradable', 'm2_slots',
+    ] },
+  // Laptop upgrade parts. Kept apart from the desktop 'ram' and 'storage'
+  // pools because a laptop takes SO-DIMM, not DIMM — one bucket would
+  // eventually quote a SO-DIMM into a tower.
+  { id: 'laptop_ram',     label: 'Laptop Memory',  icon: 'view_module',
+    fields: ['ram_type', 'capacity_gb'] },
+  { id: 'laptop_storage', label: 'Laptop Storage', icon: 'hard_drive',
+    fields: ['capacity_gb'] },
 ]
 
 export const TYPE_LABEL = Object.fromEntries(COMPONENT_TYPES.map((t) => [t.id, t.label]))
@@ -59,7 +78,7 @@ export const AVAILABILITY_LABEL = Object.fromEntries(AVAILABILITIES.map((a) => [
 // renders exactly that set — so a CPU never asks for VRAM.
 export const COMPAT_FIELDS = {
   socket:      { label: 'Socket',              input: 'text',   placeholder: 'AM5, LGA1851…' },
-  ram_type:    { label: 'Memory type',         input: 'select', options: ['DDR4', 'DDR5'] },
+  ram_type:    { label: 'Memory type',         input: 'select', options: ['DDR4', 'DDR5', 'LPDDR5', 'LPDDR5X', 'Unified'] },
   form_factor: { label: 'Form factor',         input: 'select', options: ['ATX', 'mATX', 'ITX', 'E-ATX'] },
   supported_form_factors: {
     label: 'Supported board sizes', input: 'multi', options: ['ATX', 'mATX', 'ITX', 'E-ATX'],
@@ -81,11 +100,49 @@ export const COMPAT_FIELDS = {
   module_count:         { label: 'Modules in kit',          input: 'number', placeholder: '2' },
   pcie_slots:           { label: 'PCIe x16 slots',          input: 'number', placeholder: '2',
                           hint: 'Needed to validate multi-GPU builds.' },
+
+  // ---------- laptop ----------
+  cpu_model:    { label: 'Processor',  input: 'text', placeholder: 'Core Ultra 9 275HX' },
+  gpu_model:    { label: 'Graphics',   input: 'text', placeholder: 'GeForce RTX 5070 Laptop',
+                  hint: 'Write it exactly as the maker does — two laptops sharing this string are compared side by side on wattage.' },
+  gpu_tgp_watts: {
+    label: 'GPU power — TGP (W)', input: 'number', placeholder: '115',
+    hint: 'THE field on a laptop. Watts the chassis allows the card to draw, not the card\u2019s class rating. Two laptops both saying "RTX 5070" run ~40% apart on this alone, and no retail page prints it. Find it in the maker\u2019s spec sheet or a review; leave blank rather than guess.',
+  },
+  compute_platform: {
+    label: 'Compute platform', input: 'select', options: ['cuda', 'metal', 'rocm', 'integrated'],
+    hint: 'Decides whether the local-AI toolchain runs at all. NVIDIA = cuda, Apple Silicon = metal.',
+  },
+  ram_gb:        { label: 'Memory fitted (GB)', input: 'number', placeholder: '32' },
+  ram_upgradable: {
+    label: 'Memory upgradable?', input: 'bool',
+    hint: 'Soldered memory is permanent — the customer is told so plainly, because it decides whether the machine is still usable in four years.',
+  },
+  max_ram_gb:    { label: 'Memory ceiling (GB)', input: 'number', placeholder: '64' },
+  screen_size_in: { label: 'Screen size (in)',   input: 'decimal', placeholder: '16' },
+  screen_res:     { label: 'Resolution',         input: 'text',    placeholder: '2560x1600' },
+  screen_refresh_hz: { label: 'Refresh rate (Hz)', input: 'number', placeholder: '165' },
+  weight_kg:      { label: 'Weight (kg)',        input: 'decimal', placeholder: '2.20',
+                    hint: 'The honest axis on a laptop — it trades directly against sustained performance.' },
+  battery_wh:     { label: 'Battery (Wh)',       input: 'number',  placeholder: '90' },
+  chassis_class:  { label: 'Chassis class',      input: 'select',
+                    options: ['thin', 'balanced', 'performance', 'desktop_replacement'] },
+  storage_upgradable: {
+    label: 'Storage upgradable?', input: 'bool',
+    hint: 'No means the SSD is soldered (every current Apple Silicon machine) — the capacity bought is the capacity forever.',
+  },
+  m2_slots: {
+    label: 'M.2 bays', input: 'number', placeholder: '2',
+    hint: '2 or more means a drive can be ADDED alongside the original. 1 means any upgrade replaces it, which is a different conversation and a different price.',
+  },
+  warranty_months: { label: 'Warranty (months)', input: 'number',  placeholder: '12',
+                     hint: 'Matters far more than on a desktop: you cannot swap a failed part yourself.' },
 }
 
 // A few fields read better retitled for the part they sit on.
 const FIELD_LABEL_OVERRIDES = {
   storage: { capacity_gb: 'Capacity (GB)' },
+  laptop:  { capacity_gb: 'Storage (GB)' },
 }
 
 export function fieldsForType(type) {

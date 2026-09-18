@@ -9,9 +9,15 @@
 export const CORE_TYPES   = ['cpu', 'motherboard', 'ram', 'storage', 'psu', 'case', 'cooler']
 export const OPTIONAL_TYPES = ['os', 'monitor', 'peripheral', 'network']
 
+// `forms` scopes a workload to the tracks whose catalogue can actually answer
+// it. dev and cad are laptop-only for now because no desktop PART carries a
+// dev_score or cad_score — offering them on the desktop builder would rank
+// every component at zero and assemble nonsense. Score the parts catalogue and
+// they become desktop workloads by adding one string here.
 export const WORKLOADS = [
   {
     id: 'ai',
+    forms: ['desktop', 'laptop'],
     label: 'AI / Machine Learning',
     icon: 'neurology',
     blurb: 'Run and fine-tune local LLMs, computer vision, model training.',
@@ -25,6 +31,7 @@ export const WORKLOADS = [
   },
   {
     id: 'creator',
+    forms: ['desktop', 'laptop'],
     label: 'Video & Creative',
     icon: 'movie_edit',
     blurb: '4K editing, colour work, 3D rendering, motion graphics.',
@@ -35,6 +42,7 @@ export const WORKLOADS = [
   },
   {
     id: 'gaming',
+    forms: ['desktop', 'laptop'],
     label: 'Gaming',
     icon: 'sports_esports',
     blurb: 'High frame rates at the resolution you actually play at.',
@@ -45,6 +53,7 @@ export const WORKLOADS = [
   },
   {
     id: 'office',
+    forms: ['desktop', 'laptop'],
     label: 'Office & Study',
     icon: 'business_center',
     blurb: 'Reliable everyday machines for work, study or a computer lab.',
@@ -53,7 +62,34 @@ export const WORKLOADS = [
     anchor: 'cpu',
     examples: ['School computer lab', 'Office workstations', 'Student PC'],
   },
+  {
+    id: 'dev',
+    forms: ['laptop'],
+    label: 'Software Development',
+    icon: 'code',
+    blurb: 'IDEs, containers, virtual machines, big repositories.',
+    scoreKey: 'dev_score',
+    requires: CORE_TYPES,
+    anchor: 'cpu',
+    examples: ['Docker and Kubernetes locally', 'Android Studio', 'Full-stack web work'],
+  },
+  {
+    id: 'cad',
+    forms: ['laptop'],
+    label: 'CAD & Engineering',
+    icon: 'architecture',
+    blurb: 'SolidWorks, AutoCAD, Revit, Fusion 360, large assemblies.',
+    scoreKey: 'cad_score',
+    requires: [...CORE_TYPES, 'gpu'],
+    anchor: 'gpu',
+    examples: ['SolidWorks assemblies', 'Revit models', 'AutoCAD and Fusion 360'],
+  },
 ]
+
+// The workloads a given track can honestly answer.
+export function workloadsFor(form) {
+  return WORKLOADS.filter((w) => !w.forms || w.forms.includes(form))
+}
 
 export const WORKLOAD_BY_ID = Object.fromEntries(WORKLOADS.map((w) => [w.id, w]))
 
