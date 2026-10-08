@@ -22,8 +22,17 @@ import { SettingsProvider } from './SettingsContext'
 
 export default function App() {
   return (
-    <SettingsProvider>
     <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+  )
+}
+
+// Shared with the build-time prerender (src/entry-server.jsx), which wraps
+// these routes in a StaticRouter instead of BrowserRouter.
+export function AppRoutes() {
+  return (
+    <SettingsProvider>
       <Routes>
         <Route path="/" element={<PublicSite />} />
         <Route path="/build" element={<SystemBuilderPage />} />
@@ -53,7 +62,6 @@ export default function App() {
           <Route path="settings" element={<AdminSettings />} />
         </Route>
       </Routes>
-    </BrowserRouter>
     </SettingsProvider>
   )
 }
